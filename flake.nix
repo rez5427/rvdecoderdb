@@ -13,7 +13,7 @@
     flake-utils.lib.eachDefaultSystem
       (system:
         let
-          pkgs = import nixpkgs { inherit system; overlays = [ overlay chisel-nix.overlays.mill-flows ]; };
+          pkgs = import nixpkgs { inherit system; overlays = [ chisel-nix.overlays.mill-flows overlay ]; };
           commonDeps = with pkgs; [
             mill
             espresso

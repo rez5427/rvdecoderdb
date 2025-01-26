@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2022 Jiuyang Liu <liu@jiuyang.me>
+package build
 
 import mill._
-import mill.scalalib._
+import mill.scalalib._, publish._
 import mill.scalalib.scalafmt._
-import $file.common
 
 object v {
-  val scala = "2.13.12"
+  val scala = "2.13.15"
   val scalajs = "1.14.0"
   object jvm {
     val oslib = ivy"com.lihaoyi::os-lib:0.9.1"
@@ -18,12 +18,23 @@ object v {
   }
 }
 
-trait RVDecoderDBJVMModule extends common.RVDecoderDBJVMModule with ScalafmtModule {
+trait RVDecoderDBJVMModule extends common.RVDecoderDBJVMModule with PublishModule with ScalafmtModule {
   override def millSourcePath: os.Path = os.pwd / "rvdecoderdb"
   override def allSources: T[Seq[PathRef]] = T(super.allSources() ++ Some(PathRef(millSourcePath / "jvm")))
   def scalaVersion = T(v.scala)
   def osLibIvy = v.jvm.oslib
   def upickleIvy= v.jvm.upickle
+
+  def publishVersion = "0.0.0+0-no-vcs-SNAPSHOT"
+
+  def pomSettings = PomSettings (
+    description = "rvdecoderdb",
+    organization = "me.jiuyang",
+    url = "https://github.com/sequencer/rvdecoderdb",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("sequencer", "rvdecoderdb"),
+    developers = Seq(Developer("sequencer", "Liu Jiuyang", "https://github.com/sequencer"))
+  )
 }
 
 trait RVDecoderDBJSModule extends common.RVDecoderDBJSModule with ScalafmtModule {
