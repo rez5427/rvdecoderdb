@@ -19,7 +19,7 @@ object v {
 }
 
 trait RVDecoderDBJVMModule extends common.RVDecoderDBJVMModule with PublishModule with ScalafmtModule {
-  override def allSources: T[Seq[PathRef]] = T(Seq(PathRef(millSourcePath / os.up), PathRef(millSourcePath / os.up / "jvm")))
+  override def allSources: T[Seq[PathRef]] = T(Seq(PathRef(millSourcePath / os.up / "src"), PathRef(millSourcePath / os.up / "jvm" / "src")))
   def scalaVersion = T(v.scala)
   def osLibIvy = v.jvm.oslib
   def upickleIvy= v.jvm.upickle
