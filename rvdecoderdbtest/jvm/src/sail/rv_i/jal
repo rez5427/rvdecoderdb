@@ -1,0 +1,5 @@
+print_instr("11\n");
+let t : xlenbits = PC + sign_extend(jimm20);
+print_instr("12\n");
+X(rd) = nextPC;
+nextPC = t;
