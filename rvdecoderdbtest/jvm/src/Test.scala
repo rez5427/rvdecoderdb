@@ -54,7 +54,39 @@ object Arch {
 object sailCodeGen extends App {
   def genSailAst(inst : Instruction) : String = {
     val astLHS = "union clause ast"
-    val astRHS = inst.name.toUpperCase.replace(".", "_") + " : " + (if (inst.args.length != 0) ("(" + inst.args.map(arg => s"bits(${arg.lsb - arg.msb + 1})").mkString(", ") + ")") else "unit")
+    val astRHS = inst.name.toUpperCase.replace(".", "_") + " : " + 
+      (
+        if (inst.args.length != 0) 
+          ("("
+            +
+              // The bimm and jimm are bit disordered,
+              // need to deal with its order in encdec,
+              // and combine the arg in ast and assembly.
+              inst.args.filter(arg => !arg.toString.contains("hi")).map(
+                arg => {
+                  if (arg.toString.contains("lo")) {
+                    val startIndex = arg.toString.indexOf("imm") + 3
+                    val endIndex = arg.toString.indexOf("lo")
+                    var number = 0
+                    if(startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
+                      number = arg.toString.substring(startIndex, endIndex).toInt
+                    }
+                    arg.toString.head match {
+                      case 'b' => s"bits(${number})"
+                      case 'j' => s"bits(${number})"
+                      case 'i' => s"bits(${number})"
+                      case  _  => s"bits(${arg.lsb - arg.msb + 1})"
+                    }
+                  } else {
+                    s"bits(${arg.lsb - arg.msb + 1})"
+                  }
+                }
+              ).mkString(", ") 
+            +
+          ")")
+        else
+          "unit"
+      )
     astLHS + " = " + astRHS
   }
 
@@ -75,12 +107,31 @@ object sailCodeGen extends App {
       encLHS = s"mapping clause encdec"
     }
 
-    var encRHS = inst.name.toUpperCase.replace(".", "_") + "(" + inst.args.mkString(",") + ")" + " <-> "
+    // Combine the args like bimmlo and bimmhi to bimm
+    var encRHS = inst.name.toUpperCase.replace(".", "_") + "(" + 
+        inst.args.filter(arg => !arg.toString.contains("hi")).map(
+          arg => {
+            arg.name match {
+              case "bimm12lo" => "imm7_6 @ imm5_0 @ imm7_5_0 @ imm5_4_1"
+              case "jimm20" => "imm_19 @ imm_7_0 @ imm_8 @ imm_18_13 @ imm_12_9"
+              case "imm12lo" => "imm12hi @ imm12lo"
+              case _ => arg.toString
+            }
+          }
+        ).mkString(", ") + ")" + " <-> "
 
+    // Insert args in the ??? area, like 010010??????11101001?????1010111 
     while (encIdx < 32) {
       if (encStr(encIdx) == '?') {
         val arg = sortedArgs(argIdx)
-        encRHS = encRHS + " " + arg.name
+        arg.name match {
+          case "bimm12hi" => encRHS = encRHS + " " + "imm7_6 : bits(1) @ imm7_5_0 : bits(6)"
+          case "bimm12lo" => encRHS = encRHS + " " + "imm5_4_1 : bits(4) @ imm5_0 : bits(1)"
+          case "jimm20" => encRHS = encRHS + " " + "imm_19 : bits(1) @ imm_18_13 : bits(6) @ imm_12_9 : bits(4) @ imm_8 : bits(1) @ imm_7_0 : bits(8)"
+          case "imm12lo" => encRHS = encRHS + " " + "imm12lo : bits(5)"
+          case "imm12hi" => encRHS = encRHS + " " + "imm12hi : bits(7)"
+          case _ => encRHS = encRHS + " " + arg.name
+        }
         if (argIdx != sortedArgs.length) {
           encRHS += " @"
         }
@@ -103,7 +154,22 @@ object sailCodeGen extends App {
   }
 
   def genSailExcute(inst : Instruction) : String = {
-    val excuteStrLHS = "function clause execute " + "(" + inst.name.toUpperCase.replace(".", "_") + "(" + inst.args.mkString(",") + ")" + ")"
+    val excuteStrLHS = "function clause execute " + "(" + 
+        inst.name.toUpperCase.replace(".", "_") + 
+          "(" + 
+              inst.args.filter(arg => !arg.toString.contains("hi")).map(
+                arg => {
+                  if (arg.toString.contains("lo")) {
+                    arg.toString.head match {
+                      case 'b' => arg.toString.stripSuffix("lo")
+                      case 'j' => arg.toString.stripSuffix("lo")
+                      case  _  => arg.toString
+                    }
+                  } else {
+                    arg.toString
+                  }
+                }
+              ).mkString(", ") + ")" + ")"
 
     val path = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", inst.instructionSet.name, inst.name)
 
@@ -127,29 +193,41 @@ object sailCodeGen extends App {
   def genSailAssembly(inst : Instruction) : String = {
     val assemblyLHS = "mapping clause assembly"
 
-    var assemblyRLHS = inst.name.toUpperCase.replace(".", "_") + "(" + inst.args.mkString(",") + ")"
+    var assemblyRLHS = inst.name.toUpperCase.replace(".", "_") + "(" + 
+      inst.args.filter(arg => !arg.toString.contains("hi")).map(
+          arg => {
+            if (arg.toString.contains("lo")) {
+              arg.toString.head match {
+                case 'b' => arg.toString.stripSuffix("lo")
+                case 'j' => arg.toString.stripSuffix("lo")
+                case 'i' => arg.toString.stripSuffix("lo")
+                case  _  => arg.toString
+              }
+            } else {
+              arg.toString
+            }
+          }
+        ).mkString(", ") + ")"
 
-    var assemblyRRHS = '"' + inst.name + '"' + 
+    var assemblyRRHS = '"' + inst.name + '"' + " ^ spc()" +
+      // Like ebreak has no arg
       (if (inst.args.nonEmpty) {
-        " ^ " + inst.args.map {
-          case arg if arg.toString == "rs1" => "reg_name(rs1)"
-          case arg if arg.toString == "rs2" => "reg_name(rs2)"
-          case arg if arg.toString == "rd" => "reg_name(rd)"
-          
-          case arg if arg.toString.startsWith("imm") && !arg.toString.contains("hi") && !arg.toString.contains("lo") =>
-            val immNumber = arg.toString.stripPrefix("imm").toInt
-            s"hex_bits_signed_${immNumber}(${arg})"
-            
-          case arg if arg.toString.startsWith("imm") && arg.toString.endsWith("lo") =>
-            val immNumber = arg.toString.stripPrefix("imm").stripSuffix("hi").stripSuffix("lo").toInt
-            val prefix = arg.toString.stripSuffix("hi").stripSuffix("lo")
-            s"hex_bits_signed_${immNumber}(${prefix}hi @ ${prefix}lo)"
-
-          case arg if arg.toString.startsWith("imm") && arg.toString.endsWith("hi") =>
-            ""
-          
-          case arg => s"hex_bits_signed_${arg.lsb - arg.msb + 1}(${arg})"
-        }.mkString(" ^ ")
+        " ^ " + inst.args.filter(arg => !arg.name.endsWith("hi")).map {
+            arg => {
+              arg.name match {
+                case "rs1" => "reg_name(rs1)"
+                case "rs2" => "reg_name(rs2)"
+                case "rd" => "reg_name(rd)"
+                case "bimm12lo" => s"hex_bits_signed_12(bimm12)"
+                case "jimm20" => s"hex_bits_signed_20(jimm20)"
+                case "imm12lo" => s"hex_bits_signed_12(imm12)"
+                case arg if arg.toString.startsWith("imm") && !arg.toString.contains("hi") && !arg.toString.contains("lo") =>
+                  val immNumber = arg.toString.stripPrefix("imm").toInt
+                  s"hex_bits_signed_${immNumber}(${arg})"
+                case _ => s"hex_bits_signed_${arg.lsb - arg.msb + 1}(${arg})"
+            }
+          }
+        }.mkString(" ^ sep() ^ ")
       } else "")
 
     var assemblyRHS = assemblyRLHS + " <-> " + assemblyRRHS.stripSuffix(" ^ ")

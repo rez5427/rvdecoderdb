@@ -1,9 +1,9 @@
-
 val inst_fetch = pure "inst_fetch" : xlenbits -> bits(32)
 
 function init() : unit -> unit = {
   init_base_regs();
   PC = zero_extend(0x80000000);
+
 }
 
 function step(unit) : unit -> unit = {

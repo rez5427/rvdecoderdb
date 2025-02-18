@@ -9,5 +9,6 @@ unit print_instr(sail_string s);
 
 unit zinit(unit);
 unit zstep(unit);
+void model_init(void);
 
 mach_bits inst_fetch(mach_bits pc);
