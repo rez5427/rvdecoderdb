@@ -10,15 +10,11 @@ type regtype = xlenbits
 
 let zero_reg : regtype = zeros()
 
-type regno = range(0, 31)
-
 val regval_from_reg : regtype -> xlenbits
 function regval_from_reg(r) = r
 
 val regval_into_reg : xlenbits -> regtype
 function regval_into_reg(v) = v
-
-type regidx  = bits(5)
 
 /* register file and accessors */
 

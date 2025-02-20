@@ -181,20 +181,5 @@ overload reverse = {reverse_bits_in_byte}
 overload operator / = {quot_positive_round_zero, quot_round_zero}
 overload operator * = {mult_atom, mult_int}
 
-/* helper for vector extension
- * 1. EEW between 8 and 64
- * 2. EMUL in vmv<nr>r.v instructions between 1 and 8
- */
-val log2 : forall 'n, 'n in {1, 2, 4, 8, 16, 32, 64}. int('n) -> int
-function log2(n) = {
-  let result : int = match n {
-    1    => 0,
-    2    => 1,
-    4    => 2,
-    8    => 3,
-    16   => 4,
-    32   => 5,
-    64   => 6
-  };
-  result
-}
+val readmem = pure "readmem" : bits(64) -> bits(64)
+val writemem = pure "writemem" : (bits(64), bits(64), bits(64)) -> unit

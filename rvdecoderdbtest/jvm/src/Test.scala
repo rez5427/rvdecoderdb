@@ -65,16 +65,12 @@ object sailCodeGen extends App {
               inst.args.filter(arg => !arg.toString.contains("hi")).map(
                 arg => {
                   if (arg.toString.contains("lo")) {
-                    val startIndex = arg.toString.indexOf("imm") + 3
-                    val endIndex = arg.toString.indexOf("lo")
-                    var number = 0
-                    if(startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
-                      number = arg.toString.substring(startIndex, endIndex).toInt
-                    }
-                    arg.toString.head match {
-                      case 'b' => s"bits(${number})"
-                      case 'j' => s"bits(${number})"
-                      case 'i' => s"bits(${number})"
+                    arg.name match {
+                      case "bimm12lo"   => s"bits(12)"
+                      case "jimm20lo"   => s"bits(20)"
+                      case "imm20lo"    => s"bits(20)"
+                      case "imm12lo"    => s"bits(12)"
+                      case "c_nzimm6lo" => s"bits(7)"
                       case  _  => s"bits(${arg.lsb - arg.msb + 1})"
                     }
                   } else {
@@ -159,19 +155,16 @@ object sailCodeGen extends App {
           "(" + 
               inst.args.filter(arg => !arg.toString.contains("hi")).map(
                 arg => {
-                  if (arg.toString.contains("lo")) {
-                    arg.toString.head match {
-                      case 'b' => arg.toString.stripSuffix("lo")
-                      case 'j' => arg.toString.stripSuffix("lo")
-                      case  _  => arg.toString
-                    }
-                  } else {
-                    arg.toString
+                  arg.name match {
+                    case "bimm12lo" => arg.toString.stripSuffix("lo")
+                    case "jimm20lo" => arg.toString.stripSuffix("lo")
+                    case "imm12lo" => arg.toString.stripSuffix("lo")
+                    case  _  => arg.toString
                   }
                 }
               ).mkString(", ") + ")" + ")"
 
-    val path = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", inst.instructionSet.name, inst.name)
+    val path = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "inst", inst.instructionSet.name, inst.name)
 
     var excuteStrRHS = ""
 
@@ -236,7 +229,7 @@ object sailCodeGen extends App {
   }
 
   def genRVSail(arch: Arch) : Unit = {
-    val rvCorePath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rv_core.sail")
+    val rvCorePath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "rv_core.sail")
     val SB = new StringBuilder()
 
     org.chipsalliance.rvdecoderdb.instructions(os.pwd / "rvdecoderdbtest" / "jvm" / "riscv-opcodes")
@@ -252,7 +245,7 @@ object sailCodeGen extends App {
   }
 
   def genRVXLENSail(arch: Arch) : Unit = {
-    val xlenPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rv_xlen.sail")
+    val xlenPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "rv_xlen.sail")
     val SB = new StringBuilder()
 
     if (arch.xlen == 32) {
