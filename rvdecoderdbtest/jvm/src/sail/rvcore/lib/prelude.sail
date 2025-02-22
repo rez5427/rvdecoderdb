@@ -58,7 +58,10 @@ overload operator % = {emod_int}
 overload min = {min_int}
 overload max = {max_int}
 
-val print_instr = pure {c: "print_instr"} : string -> unit
+val print_instr    = pure "print_instr" : string -> unit
+val print_reg      = pure "print_reg" : string -> unit
+//val print_mem      = pure "print_mem_access" : string -> unit
+val print_platform = pure "print_platform" : string -> unit
 
 val sign_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
 val zero_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
@@ -181,5 +184,6 @@ overload reverse = {reverse_bits_in_byte}
 overload operator / = {quot_positive_round_zero, quot_round_zero}
 overload operator * = {mult_atom, mult_int}
 
-val readmem = pure "readmem" : bits(64) -> bits(64)
-val writemem = pure "writemem" : (bits(64), bits(64), bits(64)) -> unit
+val readmem = pure "readmem" : (bits(64), bits(64)) -> bits(64)
+val writemem = pure "writemem" : (bits(64), bits(64), bits(64), bits(64)) -> unit
+val exception_raised = pure "check_exception" : (unit) -> bool

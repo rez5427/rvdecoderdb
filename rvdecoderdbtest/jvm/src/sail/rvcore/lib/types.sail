@@ -1,6 +1,3 @@
-val extensionEnabled : extension -> bool
-scattered function extensionEnabled
-
 type regidx  = bits(5)
 type cregidx = bits(3)
 type csreg   = bits(12)
@@ -136,6 +133,28 @@ union ExceptionType = {
  E_Extension          : ext_exc_type
 }
 
+val num_to_ExceptionType : {'n, (0 <= 'n < xlen). int('n)} -> ExceptionType
+function num_to_ExceptionType(n) =
+  match (n) {
+    0 => E_Fetch_Addr_Align(),
+    1 => E_Fetch_Access_Fault(),
+    2 => E_Illegal_Instr(),
+    3 => E_Breakpoint(),
+    4 => E_Load_Addr_Align(),
+    5 => E_Load_Access_Fault(),
+    6 => E_SAMO_Addr_Align(),
+    7 => E_SAMO_Access_Fault(),
+    8 => E_U_EnvCall(),
+    9 => E_S_EnvCall(),
+    10 => E_Reserved_10(),
+    11 => E_M_EnvCall(),
+    12 => E_Fetch_Page_Fault(),
+    13 => E_Load_Page_Fault(),
+    14 => E_Reserved_14(),
+    15 => E_SAMO_Page_Fault(),
+    _ => E_Extension()
+  }
+
 val exceptionType_to_bits : ExceptionType -> exc_code
 function exceptionType_to_bits(e) =
   match (e) {
@@ -254,3 +273,5 @@ function satp64Mode_of_bits(a : Architecture, m : satp_mode) -> option(SATPMode)
     (RV64, 0x9) => Some(Sv48),
     (_, _)      => None()
   }
+
+val get_exception = pure "get_exception" : (unit) -> {'n, (0 <= 'n < xlen). int('n)}

@@ -107,3 +107,4 @@ enum clause extension = Ext_Zhinx
 enum clause extension = Ext_Sstc
 // Fine-Grained Address-Translation Cache Invalidation
 enum clause extension = Ext_Svinval
+

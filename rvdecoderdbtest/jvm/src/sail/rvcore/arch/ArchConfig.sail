@@ -9,3 +9,8 @@ function sys_writable_hpm_counters() : unit -> bits(32) = {
 }
 
 function get_vlen_pow() -> range(3, 16) = 9
+
+val extensionEnabled : extension -> bool
+scattered function extensionEnabled
+
+function clause extensionEnabled(Ext_S) = true
