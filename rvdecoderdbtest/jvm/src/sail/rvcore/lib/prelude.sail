@@ -186,4 +186,4 @@ overload operator * = {mult_atom, mult_int}
 
 val readmem = pure "readmem" : (bits(64), bits(64)) -> bits(64)
 val writemem = pure "writemem" : (bits(64), bits(64), bits(64), bits(64)) -> unit
-val exception_raised = pure "check_exception" : (unit) -> bool
+val exception_raised = pure "get_exception" : (unit) -> bool

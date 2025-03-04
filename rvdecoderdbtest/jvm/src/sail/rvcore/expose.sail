@@ -18,10 +18,10 @@ function step(unit) : unit -> unit = {
     None() => {
       let inst = inst_fetch(PC);
       if (inst[1 .. 0] != 0b11) then {
-        let ast = ext_decode_compressed(inst[15 .. 0]);
-        print_instr(assembly(ast));
+        //let ast = ext_decode_compressed(inst[15 .. 0]);
+        //print_instr(assembly(ast));
         nextPC = PC + 2;
-        execute(ast);
+        //execute(ast);
       } else {
         let ast = ext_decode(inst);
         print_instr(assembly(ast));

@@ -6,6 +6,8 @@ import java.nio.file.{Files, Paths}
 import java.nio.charset.StandardCharsets
 import scala.io.Source
 
+import upickle.default.{read => readJson, macroRW, ReadWriter => RW}
+
 object printall extends App {
   org.chipsalliance.rvdecoderdb.instructions(os.pwd / "rvdecoderdbtest" / "jvm" / "riscv-opcodes").foreach(println)
 }
@@ -49,6 +51,14 @@ object Arch {
 
     Some(Arch(xlen, exts))
   }
+}
+
+case class Field(bfname: String, position: String, set_by_inner: Boolean)
+case class CSRRegister(csrname: String, width: String, bitfields: Seq[Field])
+
+object CSRRegister {
+  implicit val fieldRW: upickle.default.ReadWriter[Field] = upickle.default.macroRW
+  implicit val csrRegisterRW: upickle.default.ReadWriter[CSRRegister] = upickle.default.macroRW
 }
 
 object sailCodeGen extends App {
@@ -244,6 +254,23 @@ object sailCodeGen extends App {
     Files.write(rvCorePath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
   }
 
+  def genCSR() : Unit = {
+    val csrConfPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "config", "csr.json")
+    val csrConfString = Source.fromFile(csrConfPath.toString).mkString
+    // 解析 JSON 字符串为 List[CSRRegister]
+    val csrConfig: List[CSRRegister] = readJson[List[CSRRegister]](csrConfString)
+
+    csrConfig.foreach { csr =>
+      println(s"Register Description: ${csr.csrname}")
+      println(s"Width Type: ${csr.width}")
+      println("Fields:")
+      csr.bitfields.foreach { bitfield =>
+        println(s"  - ${bitfield.bfname}: ${bitfield.position} (set_by_inner: ${bitfield.set_by_inner})")
+      }
+      println()
+    }
+  }
+
   def genRVXLENSail(arch: Arch) : Unit = {
     val xlenPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "rv_xlen.sail")
     val SB = new StringBuilder()
@@ -270,5 +297,6 @@ object sailCodeGen extends App {
 
     genRVXLENSail(arch.get)
     genRVSail(arch.get)
+    genCSR()
   }
 }

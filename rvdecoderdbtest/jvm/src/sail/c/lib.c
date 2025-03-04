@@ -26,13 +26,13 @@ mach_bits inst_fetch(mach_bits pc) {
   return UINT64_C(0xFC3F2023);
 }
 
-uint64_t readmem(uint64_t virtaddress, uint64_t satp) {
-  printf("read_mem: address = %lx\n", virtaddress);
+uint64_t readmem(uint64_t virtaddress, uint64_t rd_val, uint64_t satp) {
+  printf("read_mem: virtaddress = %lx, rd_val = %lx, satp = %lx\n", virtaddress, rd_val, satp);
   return UINT64_C(0x0000000000000000);
 }
 
 unit writemem(uint64_t virtaddress, uint64_t data, uint64_t bytes, uint64_t satp) {
-  printf("write_mem: address = %lx, data = %lx, bytes = %lx\n", virtaddress, data, bytes);
+  printf("write_mem: address = %lx, data = %lx, bytes = %lx, satp = %lx\n", virtaddress, data, bytes, satp);
 }
 
 bool exception_raised(unit) {
