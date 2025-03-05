@@ -1,32 +1,478 @@
 [
   {
-    "csrname": "Mcause",
-    "width": "xlen",
+    "csrname": "mie",
+    "number": "0x304",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
     "bitfields": [
       {
-        "bfname": "IsInterrupt",
-        "position": "xlen - 1",
+        "bfname": "MEIE",
+        "position": "11",
         "set_by_inner": true
       },
       {
-        "bfname": "Cause",
-        "position": "xlen - 2..0",
+        "bfname": "SEIE",
+        "position": "9",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MTIE",
+        "position": "7",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "STIE",
+        "position": "5",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MSIE",
+        "position": "3",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "SSIE",
+        "position": "1",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "mip",
+    "number": "0x344",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "MEIP",
+        "position": "11",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "SEIP",
+        "position": "9",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MTIP",
+        "position": "7",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "STIP",
+        "position": "5",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MSIP",
+        "position": "3",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "SSIP",
+        "position": "1",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "mideleg",
+    "number": "0x303",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "MEID",
+        "position": "11",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "SEID",
+        "position": "9",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MTID",
+        "position": "7",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "STID",
+        "position": "5",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MSID",
+        "position": "3",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "SSID",
+        "position": "1",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "mstatus",
+    "number": "0x300",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "SD",
+        "position": "MXLEN - 1",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "TSR",
+        "position": "22",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "TW",
+        "position": "21",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "TVM",
+        "position": "20",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MXR",
+        "position": "19",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "SUM",
+        "position": "18",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MPRV",
+        "position": "17",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "XS",
+        "position": "16..15",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "FS",
+        "position": "14..13",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MPP",
+        "position": "12..11",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "VS",
+        "position": "10..9",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MPIE",
+        "position": "7",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "SPIE",
+        "position": "5",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "MIE",
+        "position": "3",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "SIE",
+        "position": "1",
         "set_by_inner": true
       }
     ]
   },
   {
     "csrname": "mtvec",
-    "width": "xlen",
+    "number": "0x305",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "Base",
-        "position": "xlen - 1..2",
+        "position": "MXLEN - 1..2",
         "set_by_inner": true
       },
       {
         "bfname": "Mode",
         "position": "1..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "mcause",
+    "number": "0x342",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "IsInterrupt",
+        "position": "MXLEN - 1",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "Cause",
+        "position": "MXLEN - 2..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "menvcfg",
+    "number": "0x30a",
+    "width": "64",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "STCE",
+        "position": "63",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "PBMTE",
+        "position": "62",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "ADUE",
+        "position": "61",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "CDE",
+        "position": "60",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "WPRI",
+        "position": "59..34",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "PMM",
+        "position": "33..32",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "WPRI",
+        "position": "31..8",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "CBZE",
+        "position": "7",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "CBCFE",
+        "position": "6",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "CBIE",
+        "position": "5..4",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "WPRI",
+        "position": "3..1",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "FIOM",
+        "position": "0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "senvcfg",
+    "number": "0x10a",
+    "width": "SXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "WPRI",
+        "position": "SXLEN - 1..34",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "PMM",
+        "position": "33..32",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "WPRI",
+        "position": "31..8",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "CBZE",
+        "position": "7",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "CBCFE",
+        "position": "6",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "CBIE",
+        "position": "5..4",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "WPRI",
+        "position": "3..1",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "FIOM",
+        "position": "0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "satp",
+    "number": "0x180",
+    "width": "SXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "MODE",
+        "position": "31",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "ASID",
+        "position": "30..22",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "PPN",
+        "position": "21..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "misa",
+    "number": "0x301",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "MXL",
+        "position": "MXLEN - 2..MXLEN - 1",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "Extensions",
+        "position": "25..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "mtval",
+    "number": "0x343",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "mtval",
+        "position": "MXLEN - 1..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "mepc",
+    "number": "0x341",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "mepc",
+        "position": "MXLEN - 1..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "stvec",
+    "number": "0x105",
+    "width": "SXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "Base",
+        "position": "SXLEN - 1..2",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "Mode",
+        "position": "1..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "sepc",
+    "number": "0x141",
+    "width": "SXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "sepc",
+        "position": "SXLEN - 1..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "scause",
+    "number": "0x142",
+    "width": "SXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "IsInterrupt",
+        "position": "SXLEN - 1",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "Cause",
+        "position": "SXLEN - 2..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "stval",
+    "number": "0x143",
+    "width": "SXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "stval",
+        "position": "SXLEN - 1..0",
         "set_by_inner": true
       }
     ]

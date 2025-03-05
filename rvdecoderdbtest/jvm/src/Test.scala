@@ -6,7 +6,11 @@ import java.nio.file.{Files, Paths}
 import java.nio.charset.StandardCharsets
 import scala.io.Source
 
-import upickle.default.{read => readJson, macroRW, ReadWriter => RW}
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.parser._
+import io.circe.syntax._
+import io.circe.generic.semiauto.deriveDecoder
 
 object printall extends App {
   org.chipsalliance.rvdecoderdb.instructions(os.pwd / "rvdecoderdbtest" / "jvm" / "riscv-opcodes").foreach(println)
@@ -53,12 +57,32 @@ object Arch {
   }
 }
 
-case class Field(bfname: String, position: String, set_by_inner: Boolean)
-case class CSRRegister(csrname: String, width: String, bitfields: Seq[Field])
 
-object CSRRegister {
-  implicit val fieldRW: upickle.default.ReadWriter[Field] = upickle.default.macroRW
-  implicit val csrRegisterRW: upickle.default.ReadWriter[CSRRegister] = upickle.default.macroRW
+case class Bitfields(bfname: String, position: String, set_by_inner: Boolean)
+
+case class Position(position: String)
+
+case class CSR(csrname: String, number: String, width: String, subordinateTo: String, bitfields: Either[Position, List[Bitfields]])
+
+object CustomDecoders {
+  implicit val decodeBitfields: Decoder[Bitfields] = deriveDecoder[Bitfields]
+  implicit val decodePosition: Decoder[Position] = deriveDecoder[Position]
+
+  implicit val decodeCSR: Decoder[CSR] = new Decoder[CSR] {
+    final def apply(c: HCursor): Decoder.Result[CSR] = for {
+      csrname <- c.downField("csrname").as[String]
+      number <- c.downField("number").as[String]
+      width <- c.downField("width").as[String]
+      subordinateTo <- c.downField("subordinateTo").as[String]
+      bitfields <- if (c.downField("position").succeeded) {
+        c.downField("position").as[Position].map(Left(_))
+      } else if (c.downField("bitfields").succeeded) {
+        c.downField("bitfields").as[List[Bitfields]].map(Right(_))
+      } else {
+        Left(DecodingFailure("Neither bitfields nor position found", Nil))
+      }
+    } yield CSR(csrname, number, width, subordinateTo, bitfields)
+  }
 }
 
 object sailCodeGen extends App {
@@ -254,20 +278,40 @@ object sailCodeGen extends App {
     Files.write(rvCorePath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
   }
 
-  def genCSR() : Unit = {
-    val csrConfPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "config", "csr.json")
+  def genCSR(): Unit = {
+    val csrConfPath = Paths.get(System.getProperty("user.dir"), "rvdecoderdbtest", "jvm", "src", "config", "csr.json")
     val csrConfString = Source.fromFile(csrConfPath.toString).mkString
-    // 解析 JSON 字符串为 List[CSRRegister]
-    val csrConfig: List[CSRRegister] = readJson[List[CSRRegister]](csrConfString)
 
-    csrConfig.foreach { csr =>
-      println(s"Register Description: ${csr.csrname}")
-      println(s"Width Type: ${csr.width}")
-      println("Fields:")
-      csr.bitfields.foreach { bitfield =>
-        println(s"  - ${bitfield.bfname}: ${bitfield.position} (set_by_inner: ${bitfield.set_by_inner})")
-      }
-      println()
+    import CustomDecoders._
+
+    parse(csrConfString) match {
+      case Left(failure) =>
+        println(s"Error parsing JSON: ${failure.getMessage}")
+      case Right(json) =>
+        json.as[List[CSR]] match {
+          case Left(error) =>
+            println(s"Error decoding JSON to CSR: $error")
+          case Right(csrDescriptions) =>
+            csrDescriptions.foreach { csr =>
+              println(s"CSR name: ${csr.csrname}")
+              println(s"CSR number: ${csr.number}")
+              println(s"Width Type: ${csr.width}")
+
+              csr.bitfields match {
+                case Left(pos) =>
+                  println(s"Position: ${pos.position}")
+                case Right(fields) if fields.nonEmpty =>
+                  println("Bitfields:")
+                  fields.foreach { field =>
+                    println(s"  - ${field.bfname}: ${field.position} (set_by_inner: ${field.set_by_inner})")
+                  }
+                case _ => 
+                  println("No bitfields or position defined.")
+              }
+
+              println()
+            }
+        }
     }
   }
 
