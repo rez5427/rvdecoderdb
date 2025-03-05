@@ -278,7 +278,7 @@ object sailCodeGen extends App {
     Files.write(rvCorePath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
   }
 
-  def genCSR(): Unit = {
+  def getCSRFromJson(): List[CSR] = {
     val csrConfPath = Paths.get(System.getProperty("user.dir"), "rvdecoderdbtest", "jvm", "src", "config", "csr.json")
     val csrConfString = Source.fromFile(csrConfPath.toString).mkString
 
@@ -287,10 +287,12 @@ object sailCodeGen extends App {
     parse(csrConfString) match {
       case Left(failure) =>
         println(s"Error parsing JSON: ${failure.getMessage}")
+        List.empty
       case Right(json) =>
         json.as[List[CSR]] match {
           case Left(error) =>
             println(s"Error decoding JSON to CSR: $error")
+            List.empty
           case Right(csrDescriptions) =>
             csrDescriptions.foreach { csr =>
               println(s"CSR name: ${csr.csrname}")
@@ -300,6 +302,7 @@ object sailCodeGen extends App {
               csr.bitfields match {
                 case Left(pos) =>
                   println(s"Position: ${pos.position}")
+                  List.empty
                 case Right(fields) if fields.nonEmpty =>
                   println("Bitfields:")
                   fields.foreach { field =>
@@ -311,8 +314,39 @@ object sailCodeGen extends App {
 
               println()
             }
+            csrDescriptions
         }
     }
+  }
+
+  def genCSRBitfields(csr: CSR) : String = {
+    val bfsDeclar = "bitfields " + csr.csrname + " : " + csr.width + "BITS = "
+    var bitfields = ""
+    csr.bitfields match {
+      // not deal with the position for now
+      case Left(pos) => bitfields
+      case Right(bfs) => bitfields = bfs.map(bf => "\t" + bf.bfname + " : " + bf.position).mkString(",\n")
+    }
+    bfsDeclar + "{\n" + bitfields +"\n}"
+  }
+
+  def genCSRRead(csr: CSR) : String = {
+    val readLHS = "function clause readCSR" + "(" + csr.number + ")"
+    val readRHS = csr.csrname + ".bits"
+    readLHS + " = " + readRHS
+  }
+
+  def genCSR() : Unit = {
+    val csrPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "ArchStateCsrRW.sail")
+    val SB = new StringBuilder()
+
+    val csrs = getCSRFromJson()
+
+    csrs.foreach { csr =>
+      SB.append(genCSRBitfields(csr) + "\n" + genCSRRead(csr) + "\n").append("\n")
+    }
+
+    Files.write(csrPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
   }
 
   def genRVXLENSail(arch: Arch) : Unit = {
