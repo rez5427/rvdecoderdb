@@ -1,5 +1,5 @@
 let t : xlenbits = X(rs1) + sign_extend(imm12);
-let value : xlenbits = zero_extend(readmem(X(rs1) + sign_extend(imm12), satp)[7..0]);
+let value : xlenbits = zero_extend(readmem(X(rs1) + sign_extend(imm12), satp.bits)[7..0]);
 if (exception_raised() == false) then {
   X(rd) = value;
 } else {

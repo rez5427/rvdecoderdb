@@ -8,9 +8,6 @@ function init() : unit -> unit = {
 }
 
 function step(unit) : unit -> unit = {
-  mip = legalize_mip(mip, get_mip());
-  mip = legalize_sip(mip, mideleg, get_sip());
-
   match dispatchInterrupt(cur_privilege) {
     Some(intr, priv) => {
       handle_interrupt(intr, priv);

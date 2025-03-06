@@ -55,15 +55,27 @@ function tvec_addr(m : MTVEC, c : MCAUSE) -> option(xlenbits) = {
 
 function handle_trap_extension(p : Privilege, pc : xlenbits, u : option(unit)) -> unit = ()
 
-function prepare_trap_vector(p : Privilege, cause : MCAUSE) -> xlenbits = {
-  let tvec : MTVEC = match p {
-                       Machine    => mtvec,
-                       Supervisor => stvec,
-                       User       => internal_error(__FILE__, __LINE__, "Invalid privilege level"),
-                     };
-  match tvec_addr(tvec, cause) {
-    Some(epc) => epc,
-    None()    => internal_error(__FILE__, __LINE__, "Invalid tvec mode")
+function prepare_trap_vector(p : Privilege) -> xlenbits = {
+  match p {
+    Machine => {
+      match (trapVectorMode_of_bits(mtvec[Mode])) {
+        TV_Direct => mtvec[Base] @ 0b00,
+        TV_Vector => if   mcause[IsInterrupt] == 0b1
+                     then (mtvec[Base] @ 0b00) + (zero_extend(mcause[Cause]) << 2)
+                     else (mtvec[Base] @ 0b00),
+        TV_Reserved => internal_error(__FILE__, __LINE__, "Invalid tvec mode")
+      }
+    },
+    Supervisor => {
+      match (trapVectorMode_of_bits(stvec[Mode])) {
+        TV_Direct => stvec[Base] @ 0b00,
+        TV_Vector => if   scause[IsInterrupt] == 0b1
+                     then (stvec[Base] @ 0b00) + (zero_extend(scause[Cause]) << 2)
+                     else (stvec[Base] @ 0b00),
+        TV_Reserved => internal_error(__FILE__, __LINE__, "Invalid tvec mode")
+      }
+    },
+    User => internal_error(__FILE__, __LINE__, "Invalid privilege level")
   }
 }
 
@@ -81,8 +93,8 @@ function trap_handler(del_priv : Privilege, intr : bool, c : exc_code, pc : xlen
        mstatus[MPIE] = mstatus[MIE];
        mstatus[MIE]  = 0b0;
        mstatus[MPP]  = privLevel_to_bits(cur_privilege);
-       mtval           = tval(info);
-       mepc            = pc;
+       mtval.bits           = tval(info);
+       mepc.bits            = pc;
 
        cur_privilege   = del_priv;
 
@@ -90,7 +102,7 @@ function trap_handler(del_priv : Privilege, intr : bool, c : exc_code, pc : xlen
 
        print_reg("CSR mstatus <- " ^ BitStr(mstatus.bits));
 
-       prepare_trap_vector(del_priv, mcause)
+       prepare_trap_vector(del_priv)
     },
     Supervisor => {
        assert (extensionEnabled(Ext_S), "no supervisor mode present for delegation");
@@ -105,8 +117,8 @@ function trap_handler(del_priv : Privilege, intr : bool, c : exc_code, pc : xlen
                            Supervisor => 0b1,
                            Machine => internal_error(__FILE__, __LINE__, "invalid privilege for s-mode trap")
                          };
-       stval           = tval(info);
-       sepc            = pc;
+       stval.bits           = tval(info);
+       sepc.bits            = pc;
 
        cur_privilege   = del_priv;
 
@@ -114,7 +126,7 @@ function trap_handler(del_priv : Privilege, intr : bool, c : exc_code, pc : xlen
 
        print_reg("CSR mstatus <- " ^ BitStr(mstatus.bits));
 
-       prepare_trap_vector(del_priv, scause)
+       prepare_trap_vector(del_priv)
     },
     User => internal_error(__FILE__, __LINE__, "Invalid privilege level"),
   };
@@ -146,6 +158,20 @@ function exception_delegatee(e : ExceptionType, p : Privilege) -> Privilege = {
   if   privLevel_to_bits(deleg) <_u privLevel_to_bits(p)
   then p else deleg
 }
+
+function align_pc(addr : xlenbits) -> xlenbits = {
+  if misa[C] == 0b1
+  then [addr with 0 = bitzero]
+  else [addr with 1..0 = zeros()]
+}
+
+val get_xepc : Privilege -> xlenbits
+function get_xepc(p) =
+  match p {
+    Machine    => align_pc(mepc.bits),
+    Supervisor => align_pc(sepc.bits),
+    User       => internal_error(__FILE__, __LINE__, "Invalid privilege level"),
+  }
 
 val prepare_xret_target : (Privilege) -> xlenbits
 function prepare_xret_target(p) =

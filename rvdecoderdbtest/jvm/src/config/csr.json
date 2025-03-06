@@ -175,6 +175,11 @@
         "set_by_inner": true
       },
       {
+        "bfname": "SPP",
+        "position": "8",
+        "set_by_inner": true
+      },
+      {
         "bfname": "MPIE",
         "position": "7",
         "set_by_inner": true
@@ -383,8 +388,53 @@
         "set_by_inner": true
       },
       {
-        "bfname": "Extensions",
-        "position": "25..0",
+        "bfname": "Z",
+        "position": "25",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "Y",
+        "position": "24",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "X",
+        "position": "23",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "W",
+        "position": "22",
+        "set_by_inner":true
+      },
+      {
+        "bfname": "V",
+        "position": "21",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "U",
+        "position": "20",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "T",
+        "position": "19",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "S",
+        "position": "18",
+        "set_by_inner": true
+      },
+      {
+        "bfname": "R",
+        "position": "17",
+        "set_by_inner": true
+      },
+      {
+        "bfname":"C",
+        "position": "2",
         "set_by_inner": true
       }
     ]
@@ -473,6 +523,19 @@
       {
         "bfname": "stval",
         "position": "SXLEN - 1..0",
+        "set_by_inner": true
+      }
+    ]
+  },
+  {
+    "csrname": "medeleg",
+    "number": "0x302",
+    "width": "MXLEN",
+    "subordinateTo": "NONE",
+    "bitfields": [
+      {
+        "bfname": "MEDELEG",
+        "position": "MXLEN - 1..0",
         "set_by_inner": true
       }
     ]

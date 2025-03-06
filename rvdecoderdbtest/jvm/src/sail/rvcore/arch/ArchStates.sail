@@ -56,3 +56,4 @@ register stvec				: STVEC
 register sepc				: SEPC
 register scause				: SCAUSE
 register stval				: STVAL
+register medeleg				: MEDELEG
