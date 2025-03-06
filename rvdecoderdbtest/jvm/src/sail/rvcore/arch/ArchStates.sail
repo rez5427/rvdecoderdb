@@ -39,23 +39,20 @@ register x31 : regtype
 // state
 register cur_privilege : Privilege
 register instbits : xlenbits
-
 // csr
-
-register mie      : Minterrupts /* Enabled */
-register mip      : Minterrupts /* Pending */
-register mideleg  : Minterrupts /* Delegation to S-mode */
-register mstatus  : Mstatus
-register medeleg  : Medeleg  /* Delegation to S-mode */
-register mtvec    : Mtvec  /* Trap Vector */
-register mcause   : Mcause
-register menvcfg  : MEnvcfg
-register senvcfg  : SEnvcfg
-register satp     : xlenbits
-register misa     : Misa
-register mtval    : xlenbits
-register mepc     : xlenbits
-register stvec    : Mtvec
-register sepc     : xlenbits
-register scause   : Mcause
-register stval    : xlenbits
+register mie				: MIE
+register mip				: MIP
+register mideleg				: MIDELEG
+register mstatus				: MSTATUS
+register mtvec				: MTVEC
+register mcause				: MCAUSE
+register menvcfg				: MENVCFG
+register senvcfg				: SENVCFG
+register satp				: SATP
+register misa				: MISA
+register mtval				: MTVAL
+register mepc				: MEPC
+register stvec				: STVEC
+register sepc				: SEPC
+register scause				: SCAUSE
+register stval				: STVAL

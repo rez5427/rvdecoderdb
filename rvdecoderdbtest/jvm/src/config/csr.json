@@ -46,32 +46,32 @@
       {
         "bfname": "MEIP",
         "position": "11",
-        "set_by_inner": true
+        "set_by_inner": false
       },
       {
         "bfname": "SEIP",
         "position": "9",
-        "set_by_inner": true
+        "set_by_inner": false
       },
       {
         "bfname": "MTIP",
         "position": "7",
-        "set_by_inner": true
+        "set_by_inner": false
       },
       {
         "bfname": "STIP",
         "position": "5",
-        "set_by_inner": true
+        "set_by_inner": false
       },
       {
         "bfname": "MSIP",
         "position": "3",
-        "set_by_inner": true
+        "set_by_inner": false
       },
       {
         "bfname": "SSIP",
         "position": "1",
-        "set_by_inner": true
+        "set_by_inner": false
       }
     ]
   },
@@ -379,7 +379,7 @@
     "bitfields": [
       {
         "bfname": "MXL",
-        "position": "MXLEN - 2..MXLEN - 1",
+        "position": "(MXLEN - 1)..(MXLEN - 2)",
         "set_by_inner": true
       },
       {

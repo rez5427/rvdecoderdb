@@ -294,33 +294,21 @@ object sailCodeGen extends App {
             println(s"Error decoding JSON to CSR: $error")
             List.empty
           case Right(csrDescriptions) =>
-            csrDescriptions.foreach { csr =>
-              println(s"CSR name: ${csr.csrname}")
-              println(s"CSR number: ${csr.number}")
-              println(s"Width Type: ${csr.width}")
-
-              csr.bitfields match {
-                case Left(pos) =>
-                  println(s"Position: ${pos.position}")
-                  List.empty
-                case Right(fields) if fields.nonEmpty =>
-                  println("Bitfields:")
-                  fields.foreach { field =>
-                    println(s"  - ${field.bfname}: ${field.position} (set_by_inner: ${field.set_by_inner})")
-                  }
-                case _ => 
-                  println("No bitfields or position defined.")
-              }
-
-              println()
-            }
             csrDescriptions
         }
     }
   }
 
   def genCSRBitfields(csr: CSR) : String = {
-    val bfsDeclar = "bitfields " + csr.csrname + " : " + csr.width + "BITS = "
+    var bfsDeclar = ""
+    if (csr.width == "64") {
+      bfsDeclar = "bitfield " + csr.csrname.toUpperCase + " : " + "bits(64) = "
+    } else if (csr.width == "32") {
+      bfsDeclar = "bitfield " + csr.csrname.toUpperCase + " : " + "bits(32) = "
+    } else {
+      bfsDeclar = "bitfield " + csr.csrname.toUpperCase + " : " + csr.width + "BITS = "
+    }
+    
     var bitfields = ""
     csr.bitfields match {
       // not deal with the position for now
@@ -331,19 +319,119 @@ object sailCodeGen extends App {
   }
 
   def genCSRRead(csr: CSR) : String = {
-    val readLHS = "function clause readCSR" + "(" + csr.number + ")"
+    val readLHS = "function clause read_CSR" + "(" + csr.number + ")"
     val readRHS = csr.csrname + ".bits"
     readLHS + " = " + readRHS
   }
 
+  def genCSRBFWriteCLink(csrs: List[CSR]) : Unit = {
+    val csrCPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "c", "CSRBFExpose.c")
+    val SB = new StringBuilder()
+
+    csrs.filter(csr => 
+      csr.bitfields.isRight && 
+      csr.bitfields.right.get.exists(bf => bf.set_by_inner == false)
+    ).foreach { csr =>
+      csr.bitfields.right.get.foreach { bf =>
+        SB.append(s"uint64_t write_${csr.csrname}_${bf.bfname}(uint64_t csr, uint64_t value) {\n")
+        SB.append(s"\treturn value;\n")
+        SB.append("}\n")
+      }
+    }
+
+    if (Files.exists(csrCPath)) {
+      println(s"File $csrCPath already exists. Skipping generation.")
+    } else {
+      Files.write(csrCPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    }
+  }
+
+  def genCSRBFWriteCHead(csrs: List[CSR]) : Unit = {
+    val csrCPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "c", "CSRBFExpose.h")
+    val SB = new StringBuilder()
+
+    csrs.filter(csr => 
+      csr.bitfields.isRight && 
+      csr.bitfields.right.get.exists(bf => bf.set_by_inner == false)
+    ).foreach { csr =>
+      csr.bitfields.right.get.foreach { bf =>
+        SB.append(s"uint64_t write_${csr.csrname}_${bf.bfname}(uint64_t csr, uint64_t value);\n")
+      }
+    }
+    if (Files.exists(csrCPath)) {
+      println(s"File $csrCPath already exists. Skipping generation.")
+    } else {
+      Files.write(csrCPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    }
+  }
+
+  def genCSRBFWriteFunc(csr: CSR) : String = {
+    var writeHEAD = ""
+    if(csr.width == "64") {
+      writeHEAD = "function write_" + csr.csrname + "(" + "o : " + csr.csrname.toUpperCase + ", v : " + "bits(64)" + "" + ")" + " -> " + csr.csrname.toUpperCase
+    } else if(csr.width == "32") {
+      writeHEAD = "function write_" + csr.csrname + "(" + "o : " + csr.csrname.toUpperCase + ", v : " + "bits(32)" + "" + ")" + " -> " + csr.csrname.toUpperCase
+    } else {
+      writeHEAD = "function write_" + csr.csrname + "(" + "o : " + csr.csrname.toUpperCase + ", v : " + csr.width + "BITS" + "" + ")" + " -> " + csr.csrname.toUpperCase
+    }
+    val writeContend = "\to"
+    writeHEAD + " = {\n" + writeContend + "\n}"
+  }
+
+  def genCSRWrite(csr: CSR) : String = {
+    var cLink = new StringBuilder()
+    if (csr.bitfields.isRight && csr.bitfields.right.get.exists(bf => bf.set_by_inner == false)) {
+      csr.bitfields.right.get.foreach { bf =>
+        cLink.append(s"val write_${csr.csrname}_${bf.bfname} = pure\"write_${csr.csrname}_${bf.bfname}\" : (${csr.width + "BITS"}, ${csr.width + "BITS"}) -> ${csr.width + "BITS"}\n")
+      }
+    }
+    val writeLHS = "function clause write_CSR" + "(" + csr.number + ", value" + ")"
+    val writeRHS = "{\n" + "\t" + csr.csrname + " = write_" + csr.csrname + "("+ csr.csrname + ", value" +");" + "\n\t" + csr.csrname + ".bits" + "\n}"
+    cLink.toString + writeLHS + " = " + writeRHS
+  }
+
+  def appendCSRRegDef(csrs: List[CSR]) : Unit = {
+    val csrPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStates.sail")
+    val SB = new StringBuilder()
+
+    val existingContent = if (Files.exists(csrPath)) {
+      Source.fromFile(csrPath.toFile).mkString
+    } else {
+      ""
+    }
+
+    val updatedContent = existingContent.split("\n").takeWhile(line => !line.contains("// csr")).mkString("\n")
+    
+    SB.append(updatedContent)
+    SB.append("\n// csr\n")
+
+    csrs.foreach { csr =>
+      SB.append(s"register ${csr.csrname}\t\t\t\t: ${csr.csrname.toUpperCase}\n")
+    }
+
+    Files.write(csrPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+  }
+
   def genCSR() : Unit = {
-    val csrPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "ArchStateCsrRW.sail")
+    val csrBFPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStateCsrBF.sail")
+    val csrPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStateCsrRW.sail")
+    val SBBF = new StringBuilder()
     val SB = new StringBuilder()
 
     val csrs = getCSRFromJson()
 
+    appendCSRRegDef(csrs)
+    genCSRBFWriteCLink(csrs)
+    genCSRBFWriteCHead(csrs)
+
     csrs.foreach { csr =>
-      SB.append(genCSRBitfields(csr) + "\n" + genCSRRead(csr) + "\n").append("\n")
+      SBBF.append(genCSRBitfields(csr) + "\n").append("\n")
+    }
+
+    Files.write(csrBFPath, SBBF.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    
+    csrs.foreach { csr =>
+      SB.append(genCSRRead(csr) + "\n" + genCSRBFWriteFunc(csr) + "\n" + genCSRWrite(csr) + "\n").append("\n")
     }
 
     Files.write(csrPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
@@ -355,12 +443,20 @@ object sailCodeGen extends App {
 
     if (arch.xlen == 32) {
       SB.append("type xlen : Int = 32\n")
+      SB.append("type MXLEN : Int = 32\n")
+      SB.append("type SXLEN : Int = 32\n")
     } else {
       SB.append("type xlen : Int = 64\n")
+      SB.append("type MXLEN : Int = 64\n")
+      SB.append("type SXLEN : Int = 64\n")
     }
 
     SB.append("let xlen = sizeof(xlen)\n")
+    SB.append("let MXLEN = sizeof(MXLEN)\n")
+    SB.append("let SXLEN = sizeof(SXLEN)\n")
     SB.append("type xlenbits = bits(xlen)\n")
+    SB.append("type MXLENBITS = bits(xlen)\n")
+    SB.append("type SXLENBITS = bits(xlen)\n")
 
     Files.write(xlenPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
   }

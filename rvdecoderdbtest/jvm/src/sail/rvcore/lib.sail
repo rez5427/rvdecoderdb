@@ -1,11 +1,11 @@
 function findPendingInterrupt(ip : xlenbits) -> option(InterruptType) = {
-  let ip = Mk_Minterrupts(ip);
-  if      ip[MEI] == 0b1 then Some(I_M_External)
-  else if ip[MSI] == 0b1 then Some(I_M_Software)
-  else if ip[MTI] == 0b1 then Some(I_M_Timer)
-  else if ip[SEI] == 0b1 then Some(I_S_External)
-  else if ip[SSI] == 0b1 then Some(I_S_Software)
-  else if ip[STI] == 0b1 then Some(I_S_Timer)
+  let ip = Mk_MIP(ip);
+  if      ip[MEIP] == 0b1 then Some(I_M_External)
+  else if ip[MSIP] == 0b1 then Some(I_M_Software)
+  else if ip[MTIP] == 0b1 then Some(I_M_Timer)
+  else if ip[SEIP] == 0b1 then Some(I_S_External)
+  else if ip[SSIP] == 0b1 then Some(I_S_Software)
+  else if ip[STIP] == 0b1 then Some(I_S_Timer)
   else                        None()
 }
 
@@ -42,7 +42,7 @@ function tval(excinfo : option(xlenbits)) -> xlenbits = {
   }
 }
 
-function tvec_addr(m : Mtvec, c : Mcause) -> option(xlenbits) = {
+function tvec_addr(m : MTVEC, c : MCAUSE) -> option(xlenbits) = {
   let base : xlenbits = m[Base] @ 0b00;
   match (trapVectorMode_of_bits(m[Mode])) {
     TV_Direct => Some(base),
@@ -55,8 +55,8 @@ function tvec_addr(m : Mtvec, c : Mcause) -> option(xlenbits) = {
 
 function handle_trap_extension(p : Privilege, pc : xlenbits, u : option(unit)) -> unit = ()
 
-function prepare_trap_vector(p : Privilege, cause : Mcause) -> xlenbits = {
-  let tvec : Mtvec = match p {
+function prepare_trap_vector(p : Privilege, cause : MCAUSE) -> xlenbits = {
+  let tvec : MTVEC = match p {
                        Machine    => mtvec,
                        Supervisor => stvec,
                        User       => internal_error(__FILE__, __LINE__, "Invalid privilege level"),
