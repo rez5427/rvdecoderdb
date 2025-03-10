@@ -58,7 +58,7 @@ object Arch {
 }
 
 
-case class Bitfields(bfname: String, position: String, set_by_inner: Boolean)
+case class Bitfields(bfname: String, position: String)
 
 case class Position(position: String)
 
@@ -324,47 +324,6 @@ object sailCodeGen extends App {
     readLHS + " = " + readRHS
   }
 
-  def genCSRBFWriteCLink(csrs: List[CSR]) : Unit = {
-    val csrCPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "c", "CSRBFExpose.c")
-    val SB = new StringBuilder()
-
-    csrs.filter(csr => 
-      csr.bitfields.isRight && 
-      csr.bitfields.right.get.exists(bf => bf.set_by_inner == false)
-    ).foreach { csr =>
-      csr.bitfields.right.get.foreach { bf =>
-        SB.append(s"uint64_t write_${csr.csrname}_${bf.bfname}(uint64_t csr, uint64_t value) {\n")
-        SB.append(s"\treturn value;\n")
-        SB.append("}\n")
-      }
-    }
-
-    if (Files.exists(csrCPath)) {
-      println(s"File $csrCPath already exists. Skipping generation.")
-    } else {
-      Files.write(csrCPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
-    }
-  }
-
-  def genCSRBFWriteCHead(csrs: List[CSR]) : Unit = {
-    val csrCPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "c", "CSRBFExpose.h")
-    val SB = new StringBuilder()
-
-    csrs.filter(csr => 
-      csr.bitfields.isRight && 
-      csr.bitfields.right.get.exists(bf => bf.set_by_inner == false)
-    ).foreach { csr =>
-      csr.bitfields.right.get.foreach { bf =>
-        SB.append(s"uint64_t write_${csr.csrname}_${bf.bfname}(uint64_t csr, uint64_t value);\n")
-      }
-    }
-    if (Files.exists(csrCPath)) {
-      println(s"File $csrCPath already exists. Skipping generation.")
-    } else {
-      Files.write(csrCPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
-    }
-  }
-
   def genCSRBFWriteFunc(csr: CSR) : String = {
     var writeHEAD = ""
     if(csr.width == "64") {
@@ -379,15 +338,9 @@ object sailCodeGen extends App {
   }
 
   def genCSRWrite(csr: CSR) : String = {
-    var cLink = new StringBuilder()
-    if (csr.bitfields.isRight && csr.bitfields.right.get.exists(bf => bf.set_by_inner == false)) {
-      csr.bitfields.right.get.foreach { bf =>
-        cLink.append(s"val write_${csr.csrname}_${bf.bfname} = pure\"write_${csr.csrname}_${bf.bfname}\" : (${csr.width + "BITS"}, ${csr.width + "BITS"}) -> ${csr.width + "BITS"}\n")
-      }
-    }
     val writeLHS = "function clause write_CSR" + "(" + csr.number + ", value" + ")"
     val writeRHS = "{\n" + "\t" + csr.csrname + " = write_" + csr.csrname + "("+ csr.csrname + ", value" +");" + "\n\t" + csr.csrname + ".bits" + "\n}"
-    cLink.toString + writeLHS + " = " + writeRHS
+    writeLHS + " = " + writeRHS
   }
 
   def appendCSRRegDef(csrs: List[CSR]) : Unit = {
@@ -421,8 +374,6 @@ object sailCodeGen extends App {
     val csrs = getCSRFromJson()
 
     appendCSRRegDef(csrs)
-    genCSRBFWriteCLink(csrs)
-    genCSRBFWriteCHead(csrs)
 
     csrs.foreach { csr =>
       SBBF.append(genCSRBitfields(csr) + "\n").append("\n")
@@ -442,21 +393,21 @@ object sailCodeGen extends App {
     val SB = new StringBuilder()
 
     if (arch.xlen == 32) {
-      SB.append("type xlen : Int = 32\n")
+      SB.append("type XLEN : Int = 32\n")
       SB.append("type MXLEN : Int = 32\n")
       SB.append("type SXLEN : Int = 32\n")
     } else {
-      SB.append("type xlen : Int = 64\n")
+      SB.append("type XLEN : Int = 64\n")
       SB.append("type MXLEN : Int = 64\n")
       SB.append("type SXLEN : Int = 64\n")
     }
 
-    SB.append("let xlen = sizeof(xlen)\n")
+    SB.append("let XLEN = sizeof(XLEN)\n")
     SB.append("let MXLEN = sizeof(MXLEN)\n")
     SB.append("let SXLEN = sizeof(SXLEN)\n")
-    SB.append("type xlenbits = bits(xlen)\n")
-    SB.append("type MXLENBITS = bits(xlen)\n")
-    SB.append("type SXLENBITS = bits(xlen)\n")
+    SB.append("type xlenbits = bits(XLEN)\n")
+    SB.append("type MXLENBITS = bits(MXLEN)\n")
+    SB.append("type SXLENBITS = bits(SXLEN)\n")
 
     Files.write(xlenPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
   }

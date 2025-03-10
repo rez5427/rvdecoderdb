@@ -91,7 +91,7 @@ function ext_translate_exception(e : ext_ptw_error) -> ext_exc_type =
 val ext_exc_type_to_bits : ext_exc_type -> exc_code
 function ext_exc_type_to_bits(e) = 0x18
 
-val num_of_ext_exc_type : ext_exc_type -> {'n, (0 <= 'n < xlen). int('n)}
+val num_of_ext_exc_type : ext_exc_type -> {'n, (0 <= 'n < XLEN). int('n)}
 function num_of_ext_exc_type(e) = 24
 
 val ext_exc_type_to_str : ext_exc_type -> string
@@ -133,7 +133,7 @@ union ExceptionType = {
  E_Extension          : ext_exc_type
 }
 
-val num_to_ExceptionType : {'n, (0 <= 'n < xlen). int('n)} -> ExceptionType
+val num_to_ExceptionType : {'n, (0 <= 'n < XLEN). int('n)} -> ExceptionType
 function num_to_ExceptionType(n) =
   match (n) {
     0 => E_Fetch_Addr_Align(),
@@ -179,7 +179,7 @@ function exceptionType_to_bits(e) =
     E_Extension(e)         => ext_exc_type_to_bits(e)
   }
 
-val num_of_ExceptionType : ExceptionType -> {'n, (0 <= 'n < xlen). int('n)}
+val num_of_ExceptionType : ExceptionType -> {'n, (0 <= 'n < XLEN). int('n)}
 function num_of_ExceptionType(e) =
   match (e) {
     E_Fetch_Addr_Align()   => 0,
@@ -274,4 +274,4 @@ function satp64Mode_of_bits(a : Architecture, m : satp_mode) -> option(SATPMode)
     (_, _)      => None()
   }
 
-val get_exception = pure "get_exception" : (unit) -> {'n, (0 <= 'n < xlen). int('n)}
+val get_exception = pure "get_exception" : (unit) -> {'n, (0 <= 'n < XLEN). int('n)}

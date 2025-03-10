@@ -7,33 +7,27 @@
     "bitfields": [
       {
         "bfname": "MEIE",
-        "position": "11",
-        "set_by_inner": true
+        "position": "11"
       },
       {
         "bfname": "SEIE",
-        "position": "9",
-        "set_by_inner": true
+        "position": "9"
       },
       {
         "bfname": "MTIE",
-        "position": "7",
-        "set_by_inner": true
+        "position": "7"
       },
       {
         "bfname": "STIE",
-        "position": "5",
-        "set_by_inner": true
+        "position": "5"
       },
       {
         "bfname": "MSIE",
-        "position": "3",
-        "set_by_inner": true
+        "position": "3"
       },
       {
         "bfname": "SSIE",
-        "position": "1",
-        "set_by_inner": true
+        "position": "1"
       }
     ]
   },
@@ -45,33 +39,27 @@
     "bitfields": [
       {
         "bfname": "MEIP",
-        "position": "11",
-        "set_by_inner": false
+        "position": "11"
       },
       {
         "bfname": "SEIP",
-        "position": "9",
-        "set_by_inner": false
+        "position": "9"
       },
       {
         "bfname": "MTIP",
-        "position": "7",
-        "set_by_inner": false
+        "position": "7"
       },
       {
         "bfname": "STIP",
-        "position": "5",
-        "set_by_inner": false
+        "position": "5"
       },
       {
         "bfname": "MSIP",
-        "position": "3",
-        "set_by_inner": false
+        "position": "3"
       },
       {
         "bfname": "SSIP",
-        "position": "1",
-        "set_by_inner": false
+        "position": "1"
       }
     ]
   },
@@ -83,33 +71,27 @@
     "bitfields": [
       {
         "bfname": "MEID",
-        "position": "11",
-        "set_by_inner": true
+        "position": "11"
       },
       {
         "bfname": "SEID",
-        "position": "9",
-        "set_by_inner": true
+        "position": "9"
       },
       {
         "bfname": "MTID",
-        "position": "7",
-        "set_by_inner": true
+        "position": "7"
       },
       {
         "bfname": "STID",
-        "position": "5",
-        "set_by_inner": true
+        "position": "5"
       },
       {
         "bfname": "MSID",
-        "position": "3",
-        "set_by_inner": true
+        "position": "3"
       },
       {
         "bfname": "SSID",
-        "position": "1",
-        "set_by_inner": true
+        "position": "1"
       }
     ]
   },
@@ -121,83 +103,67 @@
     "bitfields": [
       {
         "bfname": "SD",
-        "position": "MXLEN - 1",
-        "set_by_inner": true
+        "position": "MXLEN - 1"
       },
       {
         "bfname": "TSR",
-        "position": "22",
-        "set_by_inner": true
+        "position": "22"
       },
       {
         "bfname": "TW",
-        "position": "21",
-        "set_by_inner": true
+        "position": "21"
       },
       {
         "bfname": "TVM",
-        "position": "20",
-        "set_by_inner": true
+        "position": "20"
       },
       {
         "bfname": "MXR",
-        "position": "19",
-        "set_by_inner": true
+        "position": "19"
       },
       {
         "bfname": "SUM",
-        "position": "18",
-        "set_by_inner": true
+        "position": "18"
       },
       {
         "bfname": "MPRV",
-        "position": "17",
-        "set_by_inner": true
+        "position": "17"
       },
       {
         "bfname": "XS",
-        "position": "16..15",
-        "set_by_inner": true
+        "position": "16..15"
       },
       {
         "bfname": "FS",
-        "position": "14..13",
-        "set_by_inner": true
+        "position": "14..13"
       },
       {
         "bfname": "MPP",
-        "position": "12..11",
-        "set_by_inner": true
+        "position": "12..11"
       },
       {
         "bfname": "VS",
-        "position": "10..9",
-        "set_by_inner": true
+        "position": "10..9"
       },
       {
         "bfname": "SPP",
-        "position": "8",
-        "set_by_inner": true
+        "position": "8"
       },
       {
         "bfname": "MPIE",
-        "position": "7",
-        "set_by_inner": true
+        "position": "7"
       },
       {
         "bfname": "SPIE",
-        "position": "5",
-        "set_by_inner": true
+        "position": "5"
       },
       {
         "bfname": "MIE",
-        "position": "3",
-        "set_by_inner": true
+        "position": "3"
       },
       {
         "bfname": "SIE",
-        "position": "1",
-        "set_by_inner": true
+        "position": "1"
       }
     ]
   },
@@ -209,13 +175,11 @@
     "bitfields": [
       {
         "bfname": "Base",
-        "position": "MXLEN - 1..2",
-        "set_by_inner": true
+        "position": "MXLEN - 1..2"
       },
       {
         "bfname": "Mode",
-        "position": "1..0",
-        "set_by_inner": true
+        "position": "1..0"
       }
     ]
   },
@@ -227,13 +191,11 @@
     "bitfields": [
       {
         "bfname": "IsInterrupt",
-        "position": "MXLEN - 1",
-        "set_by_inner": true
+        "position": "MXLEN - 1"
       },
       {
         "bfname": "Cause",
-        "position": "MXLEN - 2..0",
-        "set_by_inner": true
+        "position": "MXLEN - 2..0"
       }
     ]
   },
@@ -245,63 +207,51 @@
     "bitfields": [
       {
         "bfname": "STCE",
-        "position": "63",
-        "set_by_inner": true
+        "position": "63"
       },
       {
         "bfname": "PBMTE",
-        "position": "62",
-        "set_by_inner": true
+        "position": "62"
       },
       {
         "bfname": "ADUE",
-        "position": "61",
-        "set_by_inner": true
+        "position": "61"
       },
       {
         "bfname": "CDE",
-        "position": "60",
-        "set_by_inner": true
+        "position": "60"
       },
       {
         "bfname": "WPRI",
-        "position": "59..34",
-        "set_by_inner": true
+        "position": "59..34"
       },
       {
         "bfname": "PMM",
-        "position": "33..32",
-        "set_by_inner": true
+        "position": "33..32"
       },
       {
         "bfname": "WPRI",
-        "position": "31..8",
-        "set_by_inner": true
+        "position": "31..8"
       },
       {
         "bfname": "CBZE",
-        "position": "7",
-        "set_by_inner": true
+        "position": "7"
       },
       {
         "bfname": "CBCFE",
-        "position": "6",
-        "set_by_inner": true
+        "position": "6"
       },
       {
         "bfname": "CBIE",
-        "position": "5..4",
-        "set_by_inner": true
+        "position": "5..4"
       },
       {
         "bfname": "WPRI",
-        "position": "3..1",
-        "set_by_inner": true
+        "position": "3..1"
       },
       {
         "bfname": "FIOM",
-        "position": "0",
-        "set_by_inner": true
+        "position": "0"
       }
     ]
   },
@@ -313,43 +263,35 @@
     "bitfields": [
       {
         "bfname": "WPRI",
-        "position": "SXLEN - 1..34",
-        "set_by_inner": true
+        "position": "SXLEN - 1..34"
       },
       {
         "bfname": "PMM",
-        "position": "33..32",
-        "set_by_inner": true
+        "position": "33..32"
       },
       {
         "bfname": "WPRI",
-        "position": "31..8",
-        "set_by_inner": true
+        "position": "31..8"
       },
       {
         "bfname": "CBZE",
-        "position": "7",
-        "set_by_inner": true
+        "position": "7"
       },
       {
         "bfname": "CBCFE",
-        "position": "6",
-        "set_by_inner": true
+        "position": "6"
       },
       {
         "bfname": "CBIE",
-        "position": "5..4",
-        "set_by_inner": true
+        "position": "5..4"
       },
       {
         "bfname": "WPRI",
-        "position": "3..1",
-        "set_by_inner": true
+        "position": "3..1"
       },
       {
         "bfname": "FIOM",
-        "position": "0",
-        "set_by_inner": true
+        "position": "0"
       }
     ]
   },
@@ -361,18 +303,15 @@
     "bitfields": [
       {
         "bfname": "MODE",
-        "position": "31",
-        "set_by_inner": true
+        "position": "31"
       },
       {
         "bfname": "ASID",
-        "position": "30..22",
-        "set_by_inner": true
+        "position": "30..22"
       },
       {
         "bfname": "PPN",
-        "position": "21..0",
-        "set_by_inner": true
+        "position": "21..0"
       }
     ]
   },
@@ -384,58 +323,47 @@
     "bitfields": [
       {
         "bfname": "MXL",
-        "position": "(MXLEN - 1)..(MXLEN - 2)",
-        "set_by_inner": true
+        "position": "(MXLEN - 1)..(MXLEN - 2)"
       },
       {
         "bfname": "Z",
-        "position": "25",
-        "set_by_inner": true
+        "position": "25"
       },
       {
         "bfname": "Y",
-        "position": "24",
-        "set_by_inner": true
+        "position": "24"
       },
       {
         "bfname": "X",
-        "position": "23",
-        "set_by_inner": true
+        "position": "23"
       },
       {
         "bfname": "W",
-        "position": "22",
-        "set_by_inner":true
+        "position": "22"
       },
       {
         "bfname": "V",
-        "position": "21",
-        "set_by_inner": true
+        "position": "21"
       },
       {
         "bfname": "U",
-        "position": "20",
-        "set_by_inner": true
+        "position": "20"
       },
       {
         "bfname": "T",
-        "position": "19",
-        "set_by_inner": true
+        "position": "19"
       },
       {
         "bfname": "S",
-        "position": "18",
-        "set_by_inner": true
+        "position": "18"
       },
       {
         "bfname": "R",
-        "position": "17",
-        "set_by_inner": true
+        "position": "17"
       },
       {
         "bfname":"C",
-        "position": "2",
-        "set_by_inner": true
+        "position": "2"
       }
     ]
   },
@@ -447,8 +375,7 @@
     "bitfields": [
       {
         "bfname": "mtval",
-        "position": "MXLEN - 1..0",
-        "set_by_inner": true
+        "position": "MXLEN - 1..0"
       }
     ]
   },
@@ -460,8 +387,7 @@
     "bitfields": [
       {
         "bfname": "mepc",
-        "position": "MXLEN - 1..0",
-        "set_by_inner": true
+        "position": "MXLEN - 1..0"
       }
     ]
   },
@@ -473,13 +399,11 @@
     "bitfields": [
       {
         "bfname": "Base",
-        "position": "SXLEN - 1..2",
-        "set_by_inner": true
+        "position": "SXLEN - 1..2"
       },
       {
         "bfname": "Mode",
-        "position": "1..0",
-        "set_by_inner": true
+        "position": "1..0"
       }
     ]
   },
@@ -491,8 +415,7 @@
     "bitfields": [
       {
         "bfname": "sepc",
-        "position": "SXLEN - 1..0",
-        "set_by_inner": true
+        "position": "SXLEN - 1..0"
       }
     ]
   },
@@ -504,13 +427,11 @@
     "bitfields": [
       {
         "bfname": "IsInterrupt",
-        "position": "SXLEN - 1",
-        "set_by_inner": true
+        "position": "SXLEN - 1"
       },
       {
         "bfname": "Cause",
-        "position": "SXLEN - 2..0",
-        "set_by_inner": true
+        "position": "SXLEN - 2..0"
       }
     ]
   },
@@ -522,8 +443,7 @@
     "bitfields": [
       {
         "bfname": "stval",
-        "position": "SXLEN - 1..0",
-        "set_by_inner": true
+        "position": "SXLEN - 1..0"
       }
     ]
   },
@@ -535,8 +455,7 @@
     "bitfields": [
       {
         "bfname": "MEDELEG",
-        "position": "MXLEN - 1..0",
-        "set_by_inner": true
+        "position": "MXLEN - 1..0"
       }
     ]
   }
