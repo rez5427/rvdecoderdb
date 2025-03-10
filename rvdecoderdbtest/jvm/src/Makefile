@@ -21,7 +21,7 @@ C_FLAGS = -I $(SAIL_LIB_DIR) -I sail/c $(GMP_FLAGS) $(ZLIB_FLAGS)
 C_LIBS  = $(GMP_LIBS) $(ZLIB_LIBS)
 
 generateC:
-	$(SAIL) $(SAIL_FLAGS) -O -Oconstant_fold -memo_z3 -c -c_include ../c/lib.h -c_no_main ./sail/rvcore/lib/prelude.sail ./sail/rvcore/rv_xlen.sail ./sail/rvcore/lib/scattered.sail ./sail/rvcore/lib/errors.sail ./sail/rvcore/lib/types.sail ./sail/rvcore/arch/Extensions.sail ./sail/rvcore/arch/ArchConfig.sail ./sail/rvcore/arch/ArchPrelude.sail ./sail/rvcore/arch/ArchStateCsrBF.sail ./sail/rvcore/arch/ArchStates.sail ./sail/rvcore/arch/ArchStatesRW.sail ./sail/rvcore/arch/ArchStateCsrRW.sail ./sail/rvcore/arch/ASlib.sail ./sail/rvcore/lib/rv_decode_ext.sail ./sail/rvcore/lib.sail ./sail/rvcore/rv_core.sail ./sail/rvcore/expose.sail -o ./sail/rvcore/rv_model
+	$(SAIL) $(SAIL_FLAGS) -O -Oconstant_fold -memo_z3 -c -c_include ../c/lib.h -c_no_main ./sail/rvcore/lib/prelude.sail ./sail/rvcore/rv_xlen.sail ./sail/rvcore/lib/scattered.sail ./sail/rvcore/arch/ArchPrelude.sail ./sail/rvcore/arch/ArchStateCsrBF.sail ./sail/rvcore/arch/ArchStates.sail ./sail/rvcore/arch/ArchStatesRW.sail ./sail/rvcore/arch/ASlib.sail ./sail/rvcore/rv_core.sail ./sail/rvcore/expose.sail -o ./sail/rvcore/rv_model
 
 genSo:
 	cc -g -shared -fPIC $(C_FLAGS) $(SAIL_LIB_DIR)/*.c $(C_LIBS) -o librv.so ./sail/rvcore/rv_model.c

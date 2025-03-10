@@ -272,7 +272,7 @@ object sailCodeGen extends App {
       .foreach { inst =>
         inst.pseudoFrom match {
           case Some(instruction) => ""
-          case None => SB.append(genSailAst(inst) + "\n" + genSailEnc(inst) + "\n" + genSailExcute(inst) + "\n" + genSailAssembly(inst) + "\n").append("\n")
+          case None => SB.append(genSailAst(inst) + "\n" + genSailEnc(inst) + "\n" + genSailExcute(inst) + "\n").append("\n")
         }
       }
     Files.write(rvCorePath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
@@ -377,49 +377,95 @@ object sailCodeGen extends App {
     writeLHS + " = " + writeRHS
   }
 
-  def appendCSRRegDef(csrs: List[CSR]) : Unit = {
-    val csrPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStates.sail")
+  def genGPRDef(arch : Arch) : String = {
     val SB = new StringBuilder()
-
-    val existingContent = if (Files.exists(csrPath)) {
-      Source.fromFile(csrPath.toFile).mkString
+    if (arch.extensions.contains("e")) {
+      for (i <- 0 to 15) {
+        SB.append(s"register x$i : XLENBITS\n")
+      }
     } else {
-      ""
+      for (i <- 0 to 31) {
+        SB.append(s"register x$i : XLENBITS\n")
+      }
+    }
+    SB.toString()
+  }
+
+
+
+  def genGPRRW(arch : Arch) : String = {
+    def toBinaryString5(i: Int): String = {
+      String.format("%5s", i.toBinaryString).replace(' ', '0')
     }
 
-    val updatedContent = existingContent.split("\n").takeWhile(line => !line.contains("// csr")).mkString("\n")
-    
-    SB.append(updatedContent)
-    SB.append("\n// csr\n")
+    val SB = new StringBuilder()
+    if (arch.extensions.contains("e")) {
+      for (i <- 0 to 15) {
+        SB.append(s"function clause read_GPR(0b${toBinaryString5(i)}) = x$i\n")
+        SB.append(s"function clause write_GPR(0b${toBinaryString5(i)}, v : XLENBITS) = {\n\t x$i = v \n}\n")
+      }
+    } else {
+      for (i <- 0 to 31) {
+        SB.append(s"function clause read_GPR(0b${toBinaryString5(i)}) = x$i\n")
+        SB.append(s"function clause write_GPR(0b${toBinaryString5(i)}, v : XLENBITS) = {\n\t x$i = v \n}\n")
+      }
+    }
+    SB.toString()
+  }
+
+  def genCSRRegDef(csrs: List[CSR]) : String = {
+    val SB = new StringBuilder()
 
     csrs.foreach { csr =>
       SB.append(s"register ${csr.csrname}\t\t\t\t: ${csr.csrname.toUpperCase}\n")
     }
 
-    Files.write(csrPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    SB.toString()
   }
 
-  def genCSR() : Unit = {
-    val csrBFPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStateCsrBF.sail")
-    val csrPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStateCsrRW.sail")
-    val SBBF = new StringBuilder()
+  def genArchStatesDef(arch: Arch, csrs: List[CSR]) : Unit = {
+    val archStatesPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStates.sail")
     val SB = new StringBuilder()
 
-    val csrs = getCSRFromJson()
+    SB.append("// GPRs\n")
+    SB.append(genGPRDef(arch) + "\n")
+    SB.append("// CSRs\n")
+    SB.append(genCSRRegDef(csrs) + "\n")
 
-    appendCSRRegDef(csrs)
+    SB.append("// PC\n")
+    SB.append("register PC : XLENBITS\n")
+    SB.append("register nextPC : XLENBITS\n")
+
+    SB.append("// Privilege\n")
+    SB.append("register cur_privilege : Privilege\n")
+    
+    Files.write(archStatesPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+  }
+
+  def genCSRBFDef(csrs: List[CSR]) : Unit = {
+    val csrBFPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStateCsrBF.sail")
+    val SB = new StringBuilder()
 
     csrs.foreach { csr =>
-      SBBF.append(genCSRBitfields(csr) + "\n").append("\n")
+      SB.append(genCSRBitfields(csr) + "\n").append("\n")
     }
 
-    Files.write(csrBFPath, SBBF.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
-    
+    Files.write(csrBFPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+  }
+
+  def genArchStatesRW(arch: Arch, csrs: List[CSR]) : Unit = {
+    val archStatesPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStatesRW.sail")
+    val SB = new StringBuilder()
+
+    SB.append("// GPRs\n")
+    SB.append(genGPRRW(arch) + "\n")
+
+    SB.append("// CSRs\n")
     csrs.foreach { csr =>
       SB.append(genCSRBFBitGet(csr) + "\n" + genCSRRead(csr) + "\n" + genCSRBFBitSet(csr) + "\n" + genCSRBFWriteFunc(csr) + "\n" + genCSRWrite(csr) + "\n").append("\n")
     }
 
-    Files.write(csrPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    Files.write(archStatesPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
   }
 
   def genRVXLENSail(arch: Arch) : Unit = {
@@ -439,7 +485,7 @@ object sailCodeGen extends App {
     SB.append("let XLEN = sizeof(XLEN)\n")
     SB.append("let MXLEN = sizeof(MXLEN)\n")
     SB.append("let SXLEN = sizeof(SXLEN)\n")
-    SB.append("type xlenbits = bits(XLEN)\n")
+    SB.append("type XLENBITS = bits(XLEN)\n")
     SB.append("type MXLENBITS = bits(MXLEN)\n")
     SB.append("type SXLENBITS = bits(SXLEN)\n")
 
@@ -453,9 +499,13 @@ object sailCodeGen extends App {
     println(s"Parsing march: $march")
     
     val arch = Arch.fromMarch(march)
+    val csrs = getCSRFromJson()
 
     genRVXLENSail(arch.get)
     genRVSail(arch.get)
-    genCSR()
+    genGPRRW(arch.get)
+    genArchStatesDef(arch.get, csrs)
+    genArchStatesRW(arch.get, csrs)
+    genCSRBFDef(csrs)
   }
 }

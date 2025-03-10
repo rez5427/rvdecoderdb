@@ -1,3 +1,5 @@
+let zero_reg : XLENBITS = zeros()
+
 val init_base_regs : unit -> unit
 function init_base_regs () = {
   x1  = zero_reg;
@@ -31,9 +33,4 @@ function init_base_regs () = {
   x29 = zero_reg;
   x30 = zero_reg;
   x31 = zero_reg
-}
-
-val set_next_pc : xlenbits -> unit
-function set_next_pc(pc) = {
-  nextPC = pc
 }

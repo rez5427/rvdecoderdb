@@ -1,45 +1,38 @@
-// PC
-register PC       : xlenbits
-register nextPC   : xlenbits
+// GPRs
+register x0 : XLENBITS
+register x1 : XLENBITS
+register x2 : XLENBITS
+register x3 : XLENBITS
+register x4 : XLENBITS
+register x5 : XLENBITS
+register x6 : XLENBITS
+register x7 : XLENBITS
+register x8 : XLENBITS
+register x9 : XLENBITS
+register x10 : XLENBITS
+register x11 : XLENBITS
+register x12 : XLENBITS
+register x13 : XLENBITS
+register x14 : XLENBITS
+register x15 : XLENBITS
+register x16 : XLENBITS
+register x17 : XLENBITS
+register x18 : XLENBITS
+register x19 : XLENBITS
+register x20 : XLENBITS
+register x21 : XLENBITS
+register x22 : XLENBITS
+register x23 : XLENBITS
+register x24 : XLENBITS
+register x25 : XLENBITS
+register x26 : XLENBITS
+register x27 : XLENBITS
+register x28 : XLENBITS
+register x29 : XLENBITS
+register x30 : XLENBITS
+register x31 : XLENBITS
 
-// regfile
-
-register x1  : regtype
-register x2  : regtype
-register x3  : regtype
-register x4  : regtype
-register x5  : regtype
-register x6  : regtype
-register x7  : regtype
-register x8  : regtype
-register x9  : regtype
-register x10 : regtype
-register x11 : regtype
-register x12 : regtype
-register x13 : regtype
-register x14 : regtype
-register x15 : regtype
-register x16 : regtype
-register x17 : regtype
-register x18 : regtype
-register x19 : regtype
-register x20 : regtype
-register x21 : regtype
-register x22 : regtype
-register x23 : regtype
-register x24 : regtype
-register x25 : regtype
-register x26 : regtype
-register x27 : regtype
-register x28 : regtype
-register x29 : regtype
-register x30 : regtype
-register x31 : regtype
-
-// state
-register cur_privilege : Privilege
-register instbits : xlenbits
-// csr
+// CSRs
 register mie				: MIE
 register mip				: MIP
 register mideleg				: MIDELEG
@@ -57,3 +50,9 @@ register sepc				: SEPC
 register scause				: SCAUSE
 register stval				: STVAL
 register medeleg				: MEDELEG
+
+// PC
+register PC : XLENBITS
+register nextPC : XLENBITS
+// Privilege
+register cur_privilege : Privilege
