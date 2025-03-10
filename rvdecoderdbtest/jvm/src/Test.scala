@@ -324,22 +324,56 @@ object sailCodeGen extends App {
     readLHS + " = " + readRHS
   }
 
+  def genCSRBFBitSet(csr: CSR) : String = {
+    var bitSets : String = ""
+    csr.bitfields match { 
+      case Left(pos) => bitSets
+      case Right(bfs) => bitSets = bfs.map(
+          if (csr.width == "64") {
+            bf => "function set_" + csr.csrname + "_" + bf.bfname + "(" + "v : " + "bits(64)" + ")" + " -> unit" + " = " + "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)" + "\n}"
+          } else if (csr.width == "32") {
+            bf => "function set_" + csr.csrname + "_" + bf.bfname + "(" + "v : " + "bits(32)" + ")" + " -> unit" + " = " + "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)" + "\n}"
+          } else {
+            bf => "function set_" + csr.csrname + "_" + bf.bfname + "(" + "v : " + csr.width + "BITS" + ")" + " -> unit" + " = " + "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)" + "\n}"
+          }
+        ).mkString("\n")
+    }
+    bitSets + "\n"
+  }
+
+  def genCSRBFBitGet(csr: CSR) : String = {
+    var bitSets : String = ""
+    csr.bitfields match { 
+      case Left(pos) => bitSets
+      case Right(bfs) => bitSets = bfs.map(
+          if (csr.width == "64") {
+            bf => "function get_" + csr.csrname + "_" + bf.bfname + "()" + " -> " + csr.csrname.toUpperCase + " = " + "{\n\t" + csr.csrname + "\n}"
+          } else if (csr.width == "32") {
+            bf => "function get_" + csr.csrname + "_" + bf.bfname + "()" + " -> " + csr.csrname.toUpperCase + " = " + "{\n\t" + csr.csrname + "\n}"
+          } else {
+            bf => "function get_" + csr.csrname + "_" + bf.bfname + "()" + " -> " + csr.csrname.toUpperCase + " = " + "{\n\t" + csr.csrname + "\n}"
+          }
+        ).mkString("\n")
+    }
+    bitSets + "\n"
+  }
+
   def genCSRBFWriteFunc(csr: CSR) : String = {
     var writeHEAD = ""
     if(csr.width == "64") {
-      writeHEAD = "function write_" + csr.csrname + "(" + "o : " + csr.csrname.toUpperCase + ", v : " + "bits(64)" + "" + ")" + " -> " + csr.csrname.toUpperCase
+      writeHEAD = "function write_" + csr.csrname + "(v : bits(64))" + " -> " + csr.csrname.toUpperCase
     } else if(csr.width == "32") {
-      writeHEAD = "function write_" + csr.csrname + "(" + "o : " + csr.csrname.toUpperCase + ", v : " + "bits(32)" + "" + ")" + " -> " + csr.csrname.toUpperCase
+      writeHEAD = "function write_" + csr.csrname + "(v : bits(32))" + " -> " + csr.csrname.toUpperCase
     } else {
-      writeHEAD = "function write_" + csr.csrname + "(" + "o : " + csr.csrname.toUpperCase + ", v : " + csr.width + "BITS" + "" + ")" + " -> " + csr.csrname.toUpperCase
+      writeHEAD = "function write_" + csr.csrname + "(v : " + csr.width + "BITS)" + " -> " + csr.csrname.toUpperCase
     }
-    val writeContend = "\to"
+    val writeContend = "\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v);\n\t" + csr.csrname
     writeHEAD + " = {\n" + writeContend + "\n}"
   }
 
   def genCSRWrite(csr: CSR) : String = {
     val writeLHS = "function clause write_CSR" + "(" + csr.number + ", value" + ")"
-    val writeRHS = "{\n" + "\t" + csr.csrname + " = write_" + csr.csrname + "("+ csr.csrname + ", value" +");" + "\n\t" + csr.csrname + ".bits" + "\n}"
+    val writeRHS = "{\n" + "\t" + csr.csrname + " = write_" + csr.csrname + "(value);" + "\n\t" + csr.csrname + ".bits" + "\n}"
     writeLHS + " = " + writeRHS
   }
 
@@ -382,7 +416,7 @@ object sailCodeGen extends App {
     Files.write(csrBFPath, SBBF.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
     
     csrs.foreach { csr =>
-      SB.append(genCSRRead(csr) + "\n" + genCSRBFWriteFunc(csr) + "\n" + genCSRWrite(csr) + "\n").append("\n")
+      SB.append(genCSRBFBitGet(csr) + "\n" + genCSRRead(csr) + "\n" + genCSRBFBitSet(csr) + "\n" + genCSRBFWriteFunc(csr) + "\n" + genCSRWrite(csr) + "\n").append("\n")
     }
 
     Files.write(csrPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
