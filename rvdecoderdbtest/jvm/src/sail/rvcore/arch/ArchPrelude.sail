@@ -22,22 +22,3 @@ scattered function write_CSR
 
 enum Privilege  = {User, Supervisor, Machine}
 
-// bitfield
-bitfield Medeleg : XLENBITS = {
-  SAMO_Page_Fault   : 15,
-  Load_Page_Fault   : 13,
-  Fetch_Page_Fault  : 12,
-  MEnvCall          : 11,
-  SEnvCall          : 9,
-  UEnvCall          : 8,
-  SAMO_Access_Fault : 7,
-  SAMO_Addr_Align   : 6,
-  Load_Access_Fault : 5,
-  Load_Addr_Align   : 4,
-  Breakpoint        : 3,
-  Illegal_Instr     : 2,
-  Fetch_Access_Fault: 1,
-  Fetch_Addr_Align  : 0
-}
-
-

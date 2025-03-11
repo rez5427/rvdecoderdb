@@ -210,6 +210,7 @@ object sailCodeGen extends App {
           .mkString("\n") + "\n" +
       "}"
     }
+
     if (excuteStrRHS == "") {
       ""
     } else {
@@ -328,15 +329,29 @@ object sailCodeGen extends App {
     var bitSets : String = ""
     csr.bitfields match { 
       case Left(pos) => bitSets
-      case Right(bfs) => bitSets = bfs.map(
-          if (csr.width == "64") {
-            bf => "function set_" + csr.csrname + "_" + bf.bfname + "(" + "v : " + "bits(64)" + ")" + " -> unit" + " = " + "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)" + "\n}"
-          } else if (csr.width == "32") {
-            bf => "function set_" + csr.csrname + "_" + bf.bfname + "(" + "v : " + "bits(32)" + ")" + " -> unit" + " = " + "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)" + "\n}"
-          } else {
-            bf => "function set_" + csr.csrname + "_" + bf.bfname + "(" + "v : " + csr.width + "BITS" + ")" + " -> unit" + " = " + "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)" + "\n}"
-          }
-        ).mkString("\n")
+      case Right(bfs) => bitSets = bfs.map { bf =>
+        val path = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "csr", "W", csr.csrname, bf.bfname)
+        var content = ""
+
+        if (Files.exists(path)) {
+          content = "{" + "\n" +
+            Source.fromFile(path.toFile)
+              .getLines()
+              .map(line => "\t" + line)
+              .mkString("\n") + "\n" +
+          "}"
+        } else {
+          content = "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)\n}"
+        }
+
+        if (csr.width == "64") {
+          s"function set_${csr.csrname}_${bf.bfname}(v : bits(64)) -> unit = $content"
+        } else if (csr.width == "32") {
+          s"function set_${csr.csrname}_${bf.bfname}(v : bits(32)) -> unit = $content"
+        } else {
+          s"function set_${csr.csrname}_${bf.bfname}(v : ${csr.width}BITS) -> unit = $content"
+        }
+      }.mkString("\n")
     }
     bitSets + "\n"
   }
@@ -345,15 +360,29 @@ object sailCodeGen extends App {
     var bitSets : String = ""
     csr.bitfields match { 
       case Left(pos) => bitSets
-      case Right(bfs) => bitSets = bfs.map(
-          if (csr.width == "64") {
-            bf => "function get_" + csr.csrname + "_" + bf.bfname + "()" + " -> " + csr.csrname.toUpperCase + " = " + "{\n\t" + csr.csrname + "\n}"
-          } else if (csr.width == "32") {
-            bf => "function get_" + csr.csrname + "_" + bf.bfname + "()" + " -> " + csr.csrname.toUpperCase + " = " + "{\n\t" + csr.csrname + "\n}"
-          } else {
-            bf => "function get_" + csr.csrname + "_" + bf.bfname + "()" + " -> " + csr.csrname.toUpperCase + " = " + "{\n\t" + csr.csrname + "\n}"
-          }
-        ).mkString("\n")
+      case Right(bfs) => bitSets = bfs.map { bf =>
+        val path = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "csr", "R", csr.csrname, bf.bfname)
+        var content = ""
+
+        if (Files.exists(path)) {
+          content = "{" + "\n" +
+            Source.fromFile(path.toFile)
+              .getLines()
+              .map(line => line)
+              .mkString("\n") + "\n" +
+          "}"
+        } else {
+          content = "{\n\t" + csr.csrname + ".bits\n}"
+        }
+
+        if (csr.width == "64") {
+          s"function get_${csr.csrname}_${bf.bfname}() -> bits(64) = $content"
+        } else if (csr.width == "32") {
+          s"function get_${csr.csrname}_${bf.bfname}() -> bits(32) = $content"
+        } else {
+          s"function get_${csr.csrname}_${bf.bfname}() -> ${csr.width}BITS = $content"
+        }
+      }.mkString("\n")
     }
     bitSets + "\n"
   }
@@ -390,8 +419,6 @@ object sailCodeGen extends App {
     }
     SB.toString()
   }
-
-
 
   def genGPRRW(arch : Arch) : String = {
     def toBinaryString5(i: Int): String = {
