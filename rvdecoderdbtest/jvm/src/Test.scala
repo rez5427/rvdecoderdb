@@ -48,9 +48,26 @@ object Arch {
     val extLen = extStr.length
     var exts = Set[String]()
 
+    var isFirst = true
+
     while (idx < extLen) {
-      exts += extStr(idx).toString
-      idx += 1
+      val endIdx = extStr.indexOf('_', idx)
+      if (endIdx == -1) {
+        if (isFirst) {
+          exts ++= extStr.substring(idx).map(_.toString)
+        } else {
+          exts += extStr.substring(idx)
+        }
+        idx = extLen
+      } else {
+        if (isFirst) {
+          exts ++= extStr.substring(idx, endIdx).map(_.toString)
+          isFirst = false
+        } else {
+          exts += extStr.substring(idx + 1, endIdx)
+        }
+        idx = endIdx + 1
+      }
     }
 
     Some(Arch(xlen, exts))
@@ -495,6 +512,17 @@ object sailCodeGen extends App {
     Files.write(archStatesPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
   }
 
+  def genExtEnable(arch: Arch) : Unit = {
+    val extPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStatesPrivEnable.sail")
+    val SB = new StringBuilder()
+
+    arch.extensions.foreach { ext =>
+      SB.append(s"function clause extensionEnabled(Ext_${ext.toUpperCase}) = true\n")
+    }
+
+    Files.write(extPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+  }
+
   def genRVXLENSail(arch: Arch) : Unit = {
     val xlenPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "rv_xlen.sail")
     val SB = new StringBuilder()
@@ -528,6 +556,7 @@ object sailCodeGen extends App {
     val arch = Arch.fromMarch(march)
     val csrs = getCSRFromJson()
 
+    genExtEnable(arch.get)
     genRVXLENSail(arch.get)
     genRVSail(arch.get)
     genGPRRW(arch.get)

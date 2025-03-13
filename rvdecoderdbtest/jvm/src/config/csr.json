@@ -222,16 +222,8 @@
         "position": "60"
       },
       {
-        "bfname": "WPRI_H",
-        "position": "59..34"
-      },
-      {
         "bfname": "PMM",
         "position": "33..32"
-      },
-      {
-        "bfname": "WPRI_M",
-        "position": "31..8"
       },
       {
         "bfname": "CBZE",
@@ -244,10 +236,6 @@
       {
         "bfname": "CBIE",
         "position": "5..4"
-      },
-      {
-        "bfname": "WPRI_L",
-        "position": "3..1"
       },
       {
         "bfname": "FIOM",
@@ -262,16 +250,8 @@
     "subordinateTo": "NONE",
     "bitfields": [
       {
-        "bfname": "WPRI_H",
-        "position": "SXLEN - 1..34"
-      },
-      {
         "bfname": "PMM",
         "position": "33..32"
-      },
-      {
-        "bfname": "WPRI_M",
-        "position": "31..8"
       },
       {
         "bfname": "CBZE",
@@ -284,10 +264,6 @@
       {
         "bfname": "CBIE",
         "position": "5..4"
-      },
-      {
-        "bfname": "WPRI_L",
-        "position": "3..1"
       },
       {
         "bfname": "FIOM",

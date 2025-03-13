@@ -1,7 +1,3 @@
-val inst_fetch = pure "inst_fetch" : XLENBITS -> bits(32)
-val get_mip = pure "get_mip" : unit -> bits(64)
-val get_sip = pure "get_sip" : unit -> bits(64)
-
 function init() : unit -> unit = {
   init_base_regs();
   PC = zero_extend(0x80000000);

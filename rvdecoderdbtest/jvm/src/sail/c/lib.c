@@ -23,7 +23,7 @@ unit print_reg(sail_string s)
 
 mach_bits inst_fetch(mach_bits pc) {
   printf("inst_fetch: pc = %lx\n", pc);
-  return UINT64_C(0xFC3F2023);
+  return UINT64_C(0x0000000F);
 }
 
 uint64_t readmem(uint64_t virtaddress, uint64_t rd_val, uint64_t satp) {
@@ -49,4 +49,8 @@ uint64_t get_mip(unit) {
 
 uint64_t get_sip(unit) {
   return 0x0000;
+}
+
+unit fence_i(uint16_t pred, uint16_t succ) {
+  printf("fence_i: pred = %x, succ = %x\n", pred, succ);
 }

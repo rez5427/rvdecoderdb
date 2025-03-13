@@ -23,3 +23,4 @@ bool exception_raised(unit);
 uint64_t get_exception(unit);
 mach_bits get_mip(unit);
 mach_bits get_sip(unit);
+unit fence_i(uint16_t pred, uint16_t succ);
