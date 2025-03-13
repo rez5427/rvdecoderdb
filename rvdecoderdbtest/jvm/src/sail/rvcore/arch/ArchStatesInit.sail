@@ -34,3 +34,9 @@ function init_base_regs () = {
   x30 = zero_reg;
   x31 = zero_reg
 }
+
+function init() : unit -> unit = {
+  init_base_regs();
+  PC = zero_extend(0x80000000);
+  cur_privilege = Machine
+}

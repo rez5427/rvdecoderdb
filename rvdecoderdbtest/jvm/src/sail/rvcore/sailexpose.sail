@@ -1,8 +1,3 @@
-function init() : unit -> unit = {
-  init_base_regs();
-  PC = zero_extend(0x80000000);
-}
-
 function step(unit) : unit -> unit = {
   let inst = inst_fetch(PC);
   if (inst[1 .. 0] != 0b11) then {

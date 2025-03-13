@@ -1,11 +1,5 @@
-let e : ExceptionType = match(cur_privilege) {
-  Machine     => E_M_EnvCall(),
-  Supervisor  => E_S_EnvCall(),
-  User        => E_U_EnvCall()
-};
-
 // deal with delegation
-let idx = num_of_ExceptionType(e);
+let idx = num_of_ExceptionType(E_Breakpoint());
 let super = bit_to_bool(medeleg.bits[idx]);
 let deleg = if extensionEnabled(Ext_S) & super then Supervisor else Machine;
 
@@ -14,12 +8,12 @@ let del_priv = if privLevel_to_bits(deleg) <_u privLevel_to_bits(cur_privilege) 
 match (del_priv) {
   Machine => {
     mcause[IsInterrupt] = 0b0;
-    mcause[Cause] = zero_extend(exceptionType_to_bits(e));
+    mcause[Cause] = zero_extend(exceptionType_to_bits(E_Breakpoint()));
 
     mstatus[MPIE] = mstatus[MIE];
     mstatus[MIE] = 0b0;
     mstatus[MPP] = privLevel_to_bits(cur_privilege);
-    mtval.bits = zeros();
+    mtval.bits = PC;
     mepc.bits = PC;
 
     cur_privilege = del_priv;
@@ -37,7 +31,7 @@ match (del_priv) {
     assert(extensionEnabled(Ext_S), "no supervisor mode present for delegation");
 
     scause[IsInterrupt] = 0b0;
-    scause[Cause] = zero_extend(exceptionType_to_bits(e));
+    scause[Cause] = zero_extend(exceptionType_to_bits(E_Breakpoint()));
 
     mstatus[SPIE] = mstatus[SIE];
     mstatus[SIE] = 0b0;
@@ -46,7 +40,7 @@ match (del_priv) {
       Supervisor => 0b1,
       Machine => internal_error("Invalid privilege for s-mode trap")
     };
-    stval.bits = zeros();
+    stval.bits = PC;
     sepc.bits = PC;
 
     cur_privilege = del_priv;
