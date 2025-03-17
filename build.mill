@@ -12,9 +12,6 @@ object v {
   object jvm {
     val oslib = ivy"com.lihaoyi::os-lib:0.9.1"
     val upickle = ivy"com.lihaoyi::upickle:3.3.1"
-    val circeCore = ivy"io.circe::circe-core:0.14.5"
-    val circeGeneric = ivy"io.circe::circe-generic:0.14.5"
-    val circeParser = ivy"io.circe::circe-parser:0.14.5"
   }
   object js {
     val upickle = ivy"com.lihaoyi::upickle::3.3.1"
@@ -26,9 +23,6 @@ trait RVDecoderDBJVMModule extends common.RVDecoderDBJVMModule with PublishModul
   def scalaVersion = T(v.scala)
   def osLibIvy = v.jvm.oslib
   def upickleIvy= v.jvm.upickle
-  def circeCoreIvy = v.jvm.circeCore
-  def circeGenericIvy = v.jvm.circeGeneric
-  def circeParserIvy = v.jvm.circeParser
 
   def publishVersion = "0.0.0+0-no-vcs-SNAPSHOT"
 

@@ -23,8 +23,12 @@ scattered function read_GPR
 val write_GPR : (regidx, XLENBITS) -> unit
 scattered function write_GPR
 
-// CSR
 type cregidx = bits(3)
+
+val creg2reg_idx : cregidx -> regidx
+function creg2reg_idx(creg) = 0b01 @ creg
+
+// CSR
 type csreg   = bits(12)
 
 val is_CSR_defined : (csreg) -> bool

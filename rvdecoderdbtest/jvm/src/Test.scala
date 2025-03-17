@@ -1,16 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2023 Jiuyang Liu <liu@jiuyang.me>
 
-import org.chipsalliance.rvdecoderdb.Instruction
-import java.nio.file.{Files, Paths}
-import java.nio.charset.StandardCharsets
-import scala.io.Source
+import org.chipsalliance.rvdecoderdb.{Instruction, Arg}
 
-import io.circe._
-import io.circe.generic.auto._
-import io.circe.parser._
-import io.circe.syntax._
-import io.circe.generic.semiauto.deriveDecoder
+import upickle.default.{ReadWriter => RW, macroRW, read, write}
 
 object printall extends App {
   org.chipsalliance.rvdecoderdb.instructions(os.pwd / "rvdecoderdbtest" / "jvm" / "riscv-opcodes").foreach(println)
@@ -43,31 +36,9 @@ object Arch {
       return None
     }
 
-    val extStr = parsedMarch.substring(4)
-    var idx = 0
-    val extLen = extStr.length
-    var exts = Set[String]()
-
-    var isFirst = true
-
-    while (idx < extLen) {
-      val endIdx = extStr.indexOf('_', idx)
-      if (endIdx == -1) {
-        if (isFirst) {
-          exts ++= extStr.substring(idx).map(_.toString)
-        } else {
-          exts += extStr.substring(idx)
-        }
-        idx = extLen
-      } else {
-        if (isFirst) {
-          exts ++= extStr.substring(idx, endIdx).map(_.toString)
-          isFirst = false
-        } else {
-          exts += extStr.substring(idx + 1, endIdx)
-        }
-        idx = endIdx + 1
-      }
+    val exts = parsedMarch.substring(4).split("_").toList match {
+      case head :: tail => head.map(_.toString).toSet ++ tail.toSet
+      case Nil => Set.empty[String]
     }
 
     Some(Arch(xlen, exts))
@@ -75,31 +46,40 @@ object Arch {
 }
 
 
-case class Bitfields(bfname: String, position: String)
+case class Bitfields(bfname: String, bfpos: String)
+
+object Bitfields {
+  implicit val rw: RW[Bitfields] = macroRW
+}
 
 case class Position(position: String)
 
-case class CSR(csrname: String, number: String, width: String, subordinateTo: String, bitfields: Either[Position, List[Bitfields]])
+object Position {
+  implicit val rw: RW[Position] = macroRW
+}
 
-object CustomDecoders {
-  implicit val decodeBitfields: Decoder[Bitfields] = deriveDecoder[Bitfields]
-  implicit val decodePosition: Decoder[Position] = deriveDecoder[Position]
+case class CSR(csrname: String, number: String, width: String, subordinateTo: String, bitfields: Either[Position, Seq[Bitfields]])
 
-  implicit val decodeCSR: Decoder[CSR] = new Decoder[CSR] {
-    final def apply(c: HCursor): Decoder.Result[CSR] = for {
-      csrname <- c.downField("csrname").as[String]
-      number <- c.downField("number").as[String]
-      width <- c.downField("width").as[String]
-      subordinateTo <- c.downField("subordinateTo").as[String]
-      bitfields <- if (c.downField("position").succeeded) {
-        c.downField("position").as[Position].map(Left(_))
-      } else if (c.downField("bitfields").succeeded) {
-        c.downField("bitfields").as[List[Bitfields]].map(Right(_))
+object CSR {
+  implicit val rw: RW[CSR] = macroRW
+
+  // Define implicit ReadWriter for Either[Position, Seq[Bitfields]]
+  implicit val eitherRW: RW[Either[Position, Seq[Bitfields]]] = upickle.default.readwriter[ujson.Value].bimap(
+    {
+      case Left(position) => write(position)
+      case Right(bitfields) => write(bitfields)
+    },
+    json => {
+      val jsonObj = ujson.read(json)
+      if (jsonObj.isInstanceOf[ujson.Obj] && jsonObj.obj.contains("position")) {
+        Left(read[Position](json))
+      } else if (jsonObj.isInstanceOf[ujson.Arr]) {
+        Right(read[Seq[Bitfields]](json))
       } else {
-        Left(DecodingFailure("Neither bitfields nor position found", Nil))
+        throw new ujson.Value.InvalidData(json, "Expected Position or Seq[Bitfields]")
       }
-    } yield CSR(csrname, number, width, subordinateTo, bitfields)
-  }
+    }
+  )
 }
 
 object sailCodeGen extends App {
@@ -138,70 +118,67 @@ object sailCodeGen extends App {
   }
 
   def genSailEnc(inst : Instruction) : String = {
-    var encLHS = ""
-    
-    val sortedArgs = inst.args.sortBy(arg => -arg.msb)
-    var encIdx = 0
-    var argIdx = 0
-    val encStr = inst.encoding.toString
+    def encHelper(encStr: List[Char], args: Seq[Arg], acc: List[String]): List[String] = encStr match {
+      case Nil => acc
+      case '?' :: rest if args.nonEmpty =>
+        val arg = args.head
+        val argBits = arg.lsb - arg.msb + 1
+        val newAcc = acc :+ 
+          (arg.name match {
+            case "bimm12hi" => "imm7_6 : bits(1) @ imm7_5_0 : bits(6)"
+            case "bimm12lo" => "imm5_4_1 : bits(4) @ imm5_0 : bits(1)"
+            case "jimm20"   => "imm_19 : bits(1) @ imm_18_13 : bits(6) @ imm_12_9 : bits(4) @ imm_8 : bits(1) @ imm_7_0 : bits(8)"
+            case "imm12lo"  => "imm12lo : bits(5)"
+            case "imm12hi"  => "imm12hi : bits(7)"
+            case _ => arg.name
+          })
+        
+        encHelper(rest.drop(argBits - 1), args.tail, newAcc)
+      case ch :: rest =>
+        val chlist = encStr.takeWhile( _ != '?')
+        val newAcc = acc :+ s"0b${chlist.mkString}"
+        encHelper((ch :: rest).drop(chlist.mkString.length), args, newAcc)
+    }
 
     val cExtendsSets = Set("rv_c", "rv32_c", "rv64_c", "rv_c_d", "rv_c_f", "rv32_c_f", "rv_c_zihintntl", "rv_zcb", "rv64_zcb", "rv_zcmop", "rv_zcmp", "rv_zcmt", "rv_c_zicfiss")
 
     if (cExtendsSets.contains(inst.instructionSet.name)) {
-      encLHS = s"mapping clause encdec_compressed"
-      encIdx = 16
-    } else {
-      encLHS = s"mapping clause encdec"
-    }
-
-    // Combine the args like bimmlo and bimmhi to bimm
-    var encRHS = inst.name.toUpperCase.replace(".", "_") + "(" + 
+      "mapping clause encdec_compressed = " + inst.name.toUpperCase.replace(".", "_") + "(" + 
         inst.args.filter(arg => !arg.toString.contains("hi")).map(
           arg => {
             arg.name match {
               case "bimm12lo" => "imm7_6 @ imm5_0 @ imm7_5_0 @ imm5_4_1"
               case "jimm20" => "imm_19 @ imm_7_0 @ imm_8 @ imm_18_13 @ imm_12_9"
               case "imm12lo" => "imm12hi @ imm12lo"
+              case "c_nzimm6lo" => "nz96 @ nz54 @ nz3 @ nz2"
               case _ => arg.toString
             }
           }
-        ).mkString(", ") + ")" + " <-> "
-
-    // Insert args in the ??? area, like 010010??????11101001?????1010111 
-    while (encIdx < 32) {
-      if (encStr(encIdx) == '?') {
-        val arg = sortedArgs(argIdx)
-        arg.name match {
-          case "bimm12hi" => encRHS = encRHS + " " + "imm7_6 : bits(1) @ imm7_5_0 : bits(6)"
-          case "bimm12lo" => encRHS = encRHS + " " + "imm5_4_1 : bits(4) @ imm5_0 : bits(1)"
-          case "jimm20" => encRHS = encRHS + " " + "imm_19 : bits(1) @ imm_18_13 : bits(6) @ imm_12_9 : bits(4) @ imm_8 : bits(1) @ imm_7_0 : bits(8)"
-          case "imm12lo" => encRHS = encRHS + " " + "imm12lo : bits(5)"
-          case "imm12hi" => encRHS = encRHS + " " + "imm12hi : bits(7)"
-          case _ => encRHS = encRHS + " " + arg.name
-        }
-        if (argIdx != sortedArgs.length) {
-          encRHS += " @"
-        }
-        encIdx += arg.lsb - arg.msb + 1
-        argIdx += 1
-      } else {
-        if (encIdx != 0) {
-          encRHS += ' '
-        }
-        encRHS += "0b"
-        while (encIdx < 32 && encStr(encIdx) != '?') {
-          encRHS += encStr(encIdx)
-          encIdx += 1
-        }
-        if (encIdx != 32)
-          encRHS += " @"
-      }
+        ).mkString(", ") + ")" + " <-> " + 
+        encHelper(inst.encoding.toString.toList.drop(16), inst.args.sortBy(arg => -arg.msb), Nil).mkString(" @ ")
+    } else {
+      println(inst.encoding.toString)
+      "mapping clause encdec = " + inst.name.toUpperCase.replace(".", "_") + "(" + 
+        inst.args.filter(arg => !arg.toString.contains("hi")).map(
+          arg => {
+            arg.name match {
+              case "bimm12lo"   => "imm7_6 @ imm5_0 @ imm7_5_0 @ imm5_4_1"
+              case "jimm20"     => "imm_19 @ imm_7_0 @ imm_8 @ imm_18_13 @ imm_12_9"
+              case "imm12lo"    => "imm12hi @ imm12lo"
+              case "c_nzimm6lo" => "nz96 @ nz54 @ nz3 @ nz2"
+              case _ => arg.toString
+            }
+          }
+        ).mkString(", ") + ")" + " <-> " + 
+        encHelper(inst.encoding.toString.toList, inst.args.sortBy(arg => -arg.msb), Nil).mkString(" @ ")
     }
-    encLHS + " = " + encRHS
   }
 
-  def genSailExcute(inst : Instruction) : String = {
-    val excuteStrLHS = "function clause execute " + "(" + 
+  def genSailExcute(arch: Arch, inst : Instruction) : String = {
+    val path = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "inst" / arch.xlen.toString / inst.instructionSet.name / inst.name.replace(".", "_")
+
+    if (os.exists(path)) {
+      "function clause execute " + "(" + 
         inst.name.toUpperCase.replace(".", "_") + 
           "(" + 
               inst.args.filter(arg => !arg.toString.contains("hi")).map(
@@ -213,32 +190,14 @@ object sailCodeGen extends App {
                     case  _  => arg.toString
                   }
                 }
-              ).mkString(", ") + ")" + ")"
-
-    val path = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "inst", inst.instructionSet.name, inst.name)
-
-    var excuteStrRHS = ""
-
-    if (Files.exists(path)) {
-      excuteStrRHS = "{" + "\n" +
-        Source.fromFile(path.toFile)
-          .getLines()
-          .map(line => "\t" + line)
-          .mkString("\n") + "\n" +
-      "}"
-    }
-
-    if (excuteStrRHS == "") {
-      ""
+              ).mkString(", ") + ")) = {" + os.read(path).split('\n').map(line => "\n\t" + line).mkString + "\n" + "}"
     } else {
-      excuteStrLHS + " = " + excuteStrRHS
+      ""
     }
   }
 
   def genSailAssembly(inst : Instruction) : String = {
-    val assemblyLHS = "mapping clause assembly"
-
-    var assemblyRLHS = inst.name.toUpperCase.replace(".", "_") + "(" + 
+    ("mapping clause assembly" + inst.name.toUpperCase.replace(".", "_") + "(" + 
       inst.args.filter(arg => !arg.toString.contains("hi")).map(
           arg => {
             if (arg.toString.contains("lo")) {
@@ -252,9 +211,7 @@ object sailCodeGen extends App {
               arg.toString
             }
           }
-        ).mkString(", ") + ")"
-
-    var assemblyRRHS = '"' + inst.name + '"' + " ^ spc()" +
+        ).mkString(", ") + ")") + ('"' + inst.name + '"' + " ^ spc()" +
       // Like ebreak has no arg
       (if (inst.args.nonEmpty) {
         " ^ " + inst.args.filter(arg => !arg.name.endsWith("hi")).map {
@@ -273,67 +230,37 @@ object sailCodeGen extends App {
             }
           }
         }.mkString(" ^ sep() ^ ")
-      } else "")
-
-    var assemblyRHS = assemblyRLHS + " <-> " + assemblyRRHS.stripSuffix(" ^ ")
-
-    assemblyLHS + " = " + assemblyRHS
+      } else "")).stripSuffix(" ^ ")
   }
 
   def genRVSail(arch: Arch) : Unit = {
-    val rvCorePath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "rv_core.sail")
-    val SB = new StringBuilder()
+    val rvCorePath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "rv_core.sail"
 
-    org.chipsalliance.rvdecoderdb.instructions(os.pwd / "rvdecoderdbtest" / "jvm" / "riscv-opcodes")
+    os.write.over(rvCorePath, org.chipsalliance.rvdecoderdb.instructions(os.pwd / "rvdecoderdbtest" / "jvm" / "riscv-opcodes")
       .filter(inst => !inst.name.endsWith(".N"))
-      .filter(inst => inst.instructionSet.name.endsWith("rv_i"))
-      .foreach { inst =>
+      .filter(inst => 
+        arch.extensions.exists(ext => inst.instructionSet.name.endsWith(s"rv_$ext"))
+      )
+      .map ( inst =>
         inst.pseudoFrom match {
           case Some(instruction) => ""
-          case None => SB.append(genSailAst(inst) + "\n" + genSailEnc(inst) + "\n" + genSailExcute(inst) + "\n").append("\n")
+          case None => genSailAst(inst) + "\n" + genSailEnc(inst) + "\n" + genSailExcute(arch, inst) + "\n"
         }
-      }
-    Files.write(rvCorePath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
-  }
-
-  def getCSRFromJson(): List[CSR] = {
-    val csrConfPath = Paths.get(System.getProperty("user.dir"), "rvdecoderdbtest", "jvm", "src", "config", "csr.json")
-    val csrConfString = Source.fromFile(csrConfPath.toString).mkString
-
-    import CustomDecoders._
-
-    parse(csrConfString) match {
-      case Left(failure) =>
-        println(s"Error parsing JSON: ${failure.getMessage}")
-        List.empty
-      case Right(json) =>
-        json.as[List[CSR]] match {
-          case Left(error) =>
-            println(s"Error decoding JSON to CSR: $error")
-            List.empty
-          case Right(csrDescriptions) =>
-            csrDescriptions
-        }
-    }
+      ).mkString)
   }
 
   def genCSRBitfields(csr: CSR) : String = {
-    var bfsDeclar = ""
-    if (csr.width == "64") {
-      bfsDeclar = "bitfield " + csr.csrname.toUpperCase + " : " + "bits(64) = "
+    (if (csr.width == "64") {
+      "bitfield " + csr.csrname.toUpperCase + " : " + "bits(64) = "
     } else if (csr.width == "32") {
-      bfsDeclar = "bitfield " + csr.csrname.toUpperCase + " : " + "bits(32) = "
+      "bitfield " + csr.csrname.toUpperCase + " : " + "bits(32) = "
     } else {
-      bfsDeclar = "bitfield " + csr.csrname.toUpperCase + " : " + csr.width + "BITS = "
-    }
-    
-    var bitfields = ""
-    csr.bitfields match {
+      "bitfield " + csr.csrname.toUpperCase + " : " + csr.width + "BITS = "
+    }) + "{\n" + (csr.bitfields match {
       // not deal with the position for now
-      case Left(pos) => bitfields
-      case Right(bfs) => bitfields = bfs.map(bf => "\t" + bf.bfname + " : " + bf.position).mkString(",\n")
-    }
-    bfsDeclar + "{\n" + bitfields +"\n}"
+      case Left(pos) => ""
+      case Right(bfs) => bfs.map(bf => "\t" + bf.bfname + " : " + bf.bfpos).mkString(",\n")
+    }) +"\n}"
   }
 
   def genCSRRead(csr: CSR) : String = {
@@ -343,78 +270,95 @@ object sailCodeGen extends App {
   }
 
   def genCSRBFBitSet(csr: CSR) : String = {
-    var bitSets : String = ""
-    csr.bitfields match { 
-      case Left(pos) => bitSets
-      case Right(bfs) => bitSets = bfs.map { bf =>
-        val path = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "csr", "W", csr.csrname, bf.bfname)
-        var content = ""
-
-        if (Files.exists(path)) {
-          content = "{" + "\n" +
-            Source.fromFile(path.toFile)
-              .getLines()
-              .map(line => "\t" + line)
-              .mkString("\n") + "\n" +
-          "}"
-        } else {
-          content = "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)\n}"
-        }
+    (csr.bitfields match { 
+      case Left(pos) => "bitSets"
+      case Right(bfs) => bfs.map { bf =>
+        val path = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "csr" / "W" / csr.csrname / bf.bfname
 
         if (csr.width == "64") {
-          s"function set_${csr.csrname}_${bf.bfname}(v : bits(64)) -> unit = $content"
+          s"function set_${csr.csrname}_${bf.bfname}(v : bits(64)) -> unit = ${if (os.exists(path)) {
+            "{" + "\n" +
+                os.read(path)
+                .map(line => line)
+                .mkString + "\n" +
+            "}"
+          } else {
+            "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)\n}"
+          }}"
         } else if (csr.width == "32") {
-          s"function set_${csr.csrname}_${bf.bfname}(v : bits(32)) -> unit = $content"
+          s"function set_${csr.csrname}_${bf.bfname}(v : bits(32)) -> unit = ${if (os.exists(path)) {
+            "{" + "\n" +
+                os.read(path)
+                .map(line => line)
+                .mkString + "\n" +
+            "}"
+          } else {
+            "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)\n}"
+          }}"
         } else {
-          s"function set_${csr.csrname}_${bf.bfname}(v : ${csr.width}BITS) -> unit = $content"
+          s"function set_${csr.csrname}_${bf.bfname}(v : ${csr.width}BITS) -> unit = ${if (os.exists(path)) {
+            "{" + "\n" +
+                os.read(path)
+                .map(line => line)
+                .mkString + "\n" +
+            "}"
+          } else {
+            "{\n\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v)\n}"
+          }}"
         }
       }.mkString("\n")
-    }
-    bitSets + "\n"
+    }) + "\n"
   }
 
   def genCSRBFBitGet(csr: CSR) : String = {
-    var bitSets : String = ""
-    csr.bitfields match { 
-      case Left(pos) => bitSets
-      case Right(bfs) => bitSets = bfs.map { bf =>
-        val path = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "csr", "R", csr.csrname, bf.bfname)
-        var content = ""
-
-        if (Files.exists(path)) {
-          content = "{" + "\n" +
-            Source.fromFile(path.toFile)
-              .getLines()
-              .map(line => line)
-              .mkString("\n") + "\n" +
-          "}"
-        } else {
-          content = "{\n\t" + csr.csrname + ".bits\n}"
-        }
+    (csr.bitfields match { 
+      case Left(pos) => "bitSets"
+      case Right(bfs) => bfs.map { bf =>
+        val path = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "csr" / "R" / csr.csrname / bf.bfname
 
         if (csr.width == "64") {
-          s"function get_${csr.csrname}_${bf.bfname}() -> bits(64) = $content"
+          s"function get_${csr.csrname}_${bf.bfname}() -> bits(64) = ${if (os.exists(path)) {
+            "{" + "\n" +
+                os.read(path)
+                .map(line => line)
+                .mkString + "\n" +
+            "}"
+          } else {
+            "{\n\t" + csr.csrname + ".bits\n}"
+          }}"
         } else if (csr.width == "32") {
-          s"function get_${csr.csrname}_${bf.bfname}() -> bits(32) = $content"
+          s"function get_${csr.csrname}_${bf.bfname}() -> bits(32) = ${if (os.exists(path)) {
+            "{" + "\n" +
+                os.read(path)
+                .map(line => line)
+                .mkString + "\n" +
+            "}"
+          } else {
+            "{\n\t" + csr.csrname + ".bits\n}"
+          }}"
         } else {
-          s"function get_${csr.csrname}_${bf.bfname}() -> ${csr.width}BITS = $content"
+          s"function get_${csr.csrname}_${bf.bfname}() -> ${csr.width}BITS = ${if (os.exists(path)) {
+            "{" + "\n" +
+                os.read(path)
+                .map(line => line)
+                .mkString + "\n" +
+            "}"
+          } else {
+            "{\n\t" + csr.csrname + ".bits\n}"
+          }}"
         }
       }.mkString("\n")
-    }
-    bitSets + "\n"
+    }) + "\n"
   }
 
   def genCSRBFWriteFunc(csr: CSR) : String = {
-    var writeHEAD = ""
-    if(csr.width == "64") {
-      writeHEAD = "function write_" + csr.csrname + "(v : bits(64))" + " -> " + csr.csrname.toUpperCase
+    (if(csr.width == "64") {
+      "function write_" + csr.csrname + "(v : bits(64))" + " -> " + csr.csrname.toUpperCase
     } else if(csr.width == "32") {
-      writeHEAD = "function write_" + csr.csrname + "(v : bits(32))" + " -> " + csr.csrname.toUpperCase
+      "function write_" + csr.csrname + "(v : bits(32))" + " -> " + csr.csrname.toUpperCase
     } else {
-      writeHEAD = "function write_" + csr.csrname + "(v : " + csr.width + "BITS)" + " -> " + csr.csrname.toUpperCase
-    }
-    val writeContend = "\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v);\n\t" + csr.csrname
-    writeHEAD + " = {\n" + writeContend + "\n}"
+      "function write_" + csr.csrname + "(v : " + csr.width + "BITS)" + " -> " + csr.csrname.toUpperCase
+    }) + " = {\n" + "\t" + csr.csrname + " = Mk_" + csr.csrname.toUpperCase + "(v);\n\t" + csr.csrname + "\n}"
   }
 
   def genCSRWrite(csr: CSR) : String = {
@@ -423,128 +367,101 @@ object sailCodeGen extends App {
     writeLHS + " = " + writeRHS
   }
 
-  def genGPRDef(arch : Arch) : String = {
-    val SB = new StringBuilder()
-    if (arch.extensions.contains("e")) {
-      for (i <- 0 to 15) {
-        SB.append(s"register x$i : XLENBITS\n")
-      }
-    } else {
-      for (i <- 0 to 31) {
-        SB.append(s"register x$i : XLENBITS\n")
-      }
-    }
-    SB.toString()
+  def genGPRDef(arch: Arch): String = {
+    val range = if (arch.extensions.contains("e")) 0 to 15 else 0 to 31
+    range.map(i => s"register x$i : XLENBITS").mkString("\n")
   }
 
-  def genGPRRW(arch : Arch) : String = {
+  def genGPRRW(arch: Arch): String = {
     def toBinaryString5(i: Int): String = {
       String.format("%5s", i.toBinaryString).replace(' ', '0')
     }
 
-    val SB = new StringBuilder()
-    if (arch.extensions.contains("e")) {
-      for (i <- 0 to 15) {
-        SB.append(s"function clause read_GPR(0b${toBinaryString5(i)}) = x$i\n")
-        SB.append(s"function clause write_GPR(0b${toBinaryString5(i)}, v : XLENBITS) = {\n\t x$i = v \n}\n")
-      }
-    } else {
-      for (i <- 0 to 31) {
-        SB.append(s"function clause read_GPR(0b${toBinaryString5(i)}) = x$i\n")
-        SB.append(s"function clause write_GPR(0b${toBinaryString5(i)}, v : XLENBITS) = {\n\t x$i = v \n}\n")
-      }
-    }
-    SB.toString()
+    val range = if (arch.extensions.contains("e")) 0 to 15 else 0 to 31
+
+    range.map { i =>
+      s"function clause read_GPR(0b${toBinaryString5(i)}) = x$i\n" +
+      s"function clause write_GPR(0b${toBinaryString5(i)}, v : XLENBITS) = {\n\t x$i = v \n}\n"
+    }.mkString
   }
 
-  def genCSRRegDef(csrs: List[CSR]) : String = {
-    val SB = new StringBuilder()
-
-    csrs.foreach { csr =>
-      SB.append(s"register ${csr.csrname}\t\t\t\t: ${csr.csrname.toUpperCase}\n")
-    }
-
-    SB.toString()
+  def genCSRRegDef(csrs: Seq[CSR]) : String = {
+    csrs.map(csr =>
+      s"register ${csr.csrname}\t\t\t\t: ${csr.csrname.toUpperCase}\n"
+    ).mkString
   }
 
-  def genArchStatesDef(arch: Arch, csrs: List[CSR]) : Unit = {
-    val archStatesPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStates.sail")
-    val SB = new StringBuilder()
-
-    SB.append("// GPRs\n")
-    SB.append(genGPRDef(arch) + "\n")
-    SB.append("// CSRs\n")
-    SB.append(genCSRRegDef(csrs) + "\n")
-
-    SB.append("// PC\n")
-    SB.append("register PC : XLENBITS\n")
-    SB.append("register nextPC : XLENBITS\n")
-
-    SB.append("// Privilege\n")
-    SB.append("register cur_privilege : Privilege\n")
+  def genArchStatesDef(arch: Arch, csrs: Seq[CSR]) : Unit = {
+    val archStatesPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStates.sail"
     
-    Files.write(archStatesPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    os.write.over(archStatesPath, 
+      "// GPRs\n" +
+      genGPRDef(arch) + "\n" +
+      "// CSRs\n" +
+      genCSRRegDef(csrs) + "\n" +
+      "// PC\n" +
+      "register PC : XLENBITS\n" +
+      "register nextPC : XLENBITS\n" +
+      "// Privilege\n" +
+      "register cur_privilege : Privilege\n"
+    )
   }
 
-  def genCSRBFDef(csrs: List[CSR]) : Unit = {
-    val csrBFPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStateCsrBF.sail")
-    val SB = new StringBuilder()
+  def genCSRBFDef(csrs: Seq[CSR]) : Unit = {
+    val csrBFPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStateCsrBF.sail"
 
-    csrs.foreach { csr =>
-      SB.append(genCSRBitfields(csr) + "\n").append("\n")
-    }
-
-    Files.write(csrBFPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    os.write.over(csrBFPath, csrs.map( csr =>
+      genCSRBitfields(csr) + "\n\n"
+    ))
   }
 
-  def genArchStatesRW(arch: Arch, csrs: List[CSR]) : Unit = {
-    val archStatesPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStatesRW.sail")
-    val SB = new StringBuilder()
+  def genArchStatesRW(arch: Arch, csrs: Seq[CSR]) : Unit = {
+    val archStatesPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStatesRW.sail"
 
-    SB.append("// GPRs\n")
-    SB.append(genGPRRW(arch) + "\n")
-
-    SB.append("// CSRs\n")
-    csrs.foreach { csr =>
-      SB.append(genCSRBFBitGet(csr) + "\n" + genCSRRead(csr) + "\n" + genCSRBFBitSet(csr) + "\n" + genCSRBFWriteFunc(csr) + "\n" + genCSRWrite(csr) + "\n").append("\n")
-    }
-
-    Files.write(archStatesPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    os.write.over(archStatesPath, 
+      "// GPRs\n" + 
+      genGPRRW(arch) + 
+      "\n" + 
+      "// CSRs\n" + 
+      csrs.map(csr => 
+        genCSRBFBitGet(csr) + 
+        "\n" + 
+        genCSRRead(csr) + 
+        "\n" + 
+        genCSRBFBitSet(csr) + 
+        "\n" + 
+        genCSRBFWriteFunc(csr) + 
+        "\n" + 
+        genCSRWrite(csr) + 
+        "\n").mkString
+    )
   }
 
   def genExtEnable(arch: Arch) : Unit = {
-    val extPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "arch", "ArchStatesPrivEnable.sail")
-    val SB = new StringBuilder()
+    val extPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStatesPrivEnable.sail"
 
-    arch.extensions.foreach { ext =>
-      SB.append(s"function clause extensionEnabled(Ext_${ext.toUpperCase}) = true\n")
-    }
-
-    Files.write(extPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    os.write.over(extPath, arch.extensions.map(ext => s"function clause extensionEnabled(Ext_${ext.toUpperCase}) = true\n").mkString)
   }
 
   def genRVXLENSail(arch: Arch) : Unit = {
-    val xlenPath = Paths.get(os.pwd.toString, "rvdecoderdbtest", "jvm", "src", "sail", "rvcore", "rv_xlen.sail")
-    val SB = new StringBuilder()
+    val xlenPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "rv_xlen.sail"
 
-    if (arch.xlen == 32) {
-      SB.append("type XLEN : Int = 32\n")
-      SB.append("type MXLEN : Int = 32\n")
-      SB.append("type SXLEN : Int = 32\n")
-    } else {
-      SB.append("type XLEN : Int = 64\n")
-      SB.append("type MXLEN : Int = 64\n")
-      SB.append("type SXLEN : Int = 64\n")
-    }
-
-    SB.append("let XLEN = sizeof(XLEN)\n")
-    SB.append("let MXLEN = sizeof(MXLEN)\n")
-    SB.append("let SXLEN = sizeof(SXLEN)\n")
-    SB.append("type XLENBITS = bits(XLEN)\n")
-    SB.append("type MXLENBITS = bits(MXLEN)\n")
-    SB.append("type SXLENBITS = bits(SXLEN)\n")
-
-    Files.write(xlenPath, SB.toString().getBytes(StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)
+    os.write.over(xlenPath, 
+      if (arch.xlen == 32) {
+        "type XLEN : Int = 32\n" +
+        "type MXLEN : Int = 32\n" +
+        "type SXLEN : Int = 32\n"
+      } else {
+        "type XLEN : Int = 64\n" +
+        "type MXLEN : Int = 64\n" +
+        "type SXLEN : Int = 64\n"
+      } +   "let XLEN = sizeof(XLEN)\n" +
+            "let MXLEN = sizeof(MXLEN)\n" +
+            "let SXLEN = sizeof(SXLEN)\n" +
+            "type XLENBITS = bits(XLEN)\n" +
+            "type MXLENBITS = bits(MXLEN)\n" +
+            "type SXLENBITS = bits(SXLEN)\n"
+    )
   }
 
   if (args.isEmpty) {
@@ -554,7 +471,13 @@ object sailCodeGen extends App {
     println(s"Parsing march: $march")
     
     val arch = Arch.fromMarch(march)
-    val csrs = getCSRFromJson()
+
+    val csrPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "config" / (arch match {
+      case Some(a) if a.xlen == 32 => "csr32.json"
+      case Some(a) if a.xlen == 64 => "csr64.json"
+      case _ => throw new IllegalArgumentException("Invalid arch or xlen")
+    })
+    val csrs = read[Seq[CSR]](os.read(csrPath))
 
     genExtEnable(arch.get)
     genRVXLENSail(arch.get)

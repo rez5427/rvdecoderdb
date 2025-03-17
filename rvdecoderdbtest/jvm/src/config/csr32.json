@@ -2,7 +2,7 @@
   {
     "csrname": "mie",
     "number": "0x304",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
@@ -34,7 +34,7 @@
   {
     "csrname": "mip",
     "number": "0x344",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
@@ -66,7 +66,7 @@
   {
     "csrname": "mideleg",
     "number": "0x303",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
@@ -98,12 +98,12 @@
   {
     "csrname": "mstatus",
     "number": "0x300",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "SD",
-        "bfpos": "MXLEN - 1"
+        "bfpos": "32 - 1"
       },
       {
         "bfname": "TSR",
@@ -170,12 +170,12 @@
   {
     "csrname": "mtvec",
     "number": "0x305",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "Base",
-        "bfpos": "MXLEN - 1..2"
+        "bfpos": "32 - 1..2"
       },
       {
         "bfname": "Mode",
@@ -186,16 +186,16 @@
   {
     "csrname": "mcause",
     "number": "0x342",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "IsInterrupt",
-        "bfpos": "MXLEN - 1"
+        "bfpos": "32 - 1"
       },
       {
         "bfname": "Cause",
-        "bfpos": "MXLEN - 2..0"
+        "bfpos": "32 - 2..0"
       }
     ]
   },
@@ -246,7 +246,7 @@
   {
     "csrname": "senvcfg",
     "number": "0x10a",
-    "width": "SXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
@@ -274,7 +274,7 @@
   {
     "csrname": "satp",
     "number": "0x180",
-    "width": "SXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
@@ -294,12 +294,12 @@
   {
     "csrname": "misa",
     "number": "0x301",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "MXL",
-        "bfpos": "(MXLEN - 1)..(MXLEN - 2)"
+        "bfpos": "(32 - 1)..(32 - 2)"
       },
       {
         "bfname": "Z",
@@ -346,36 +346,36 @@
   {
     "csrname": "mtval",
     "number": "0x343",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "mtval",
-        "bfpos": "MXLEN - 1..0"
+        "bfpos": "32 - 1..0"
       }
     ]
   },
   {
     "csrname": "mepc",
     "number": "0x341",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "mepc",
-        "bfpos": "MXLEN - 1..0"
+        "bfpos": "32 - 1..0"
       }
     ]
   },
   {
     "csrname": "stvec",
     "number": "0x105",
-    "width": "SXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "Base",
-        "bfpos": "SXLEN - 1..2"
+        "bfpos": "32 - 1..2"
       },
       {
         "bfname": "Mode",
@@ -386,52 +386,52 @@
   {
     "csrname": "sepc",
     "number": "0x141",
-    "width": "SXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "sepc",
-        "bfpos": "SXLEN - 1..0"
+        "bfpos": "32 - 1..0"
       }
     ]
   },
   {
     "csrname": "scause",
     "number": "0x142",
-    "width": "SXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "IsInterrupt",
-        "bfpos": "SXLEN - 1"
+        "bfpos": "32 - 1"
       },
       {
         "bfname": "Cause",
-        "bfpos": "SXLEN - 2..0"
+        "bfpos": "32 - 2..0"
       }
     ]
   },
   {
     "csrname": "stval",
     "number": "0x143",
-    "width": "SXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "stval",
-        "bfpos": "SXLEN - 1..0"
+        "bfpos": "32 - 1..0"
       }
     ]
   },
   {
     "csrname": "medeleg",
     "number": "0x302",
-    "width": "MXLEN",
+    "width": "32",
     "subordinateTo": "NONE",
     "bitfields": [
       {
         "bfname": "MEDELEG",
-        "bfpos": "MXLEN - 1..0"
+        "bfpos": "32 - 1..0"
       }
     ]
   }

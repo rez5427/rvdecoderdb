@@ -10,10 +10,7 @@ trait RVDecoderDBJVMModule extends ScalaModule {
   override def sources: T[Seq[PathRef]] = T.sources { super.sources() ++ Some(PathRef(millSourcePath / "jvm" / "src"))  }
   def osLibIvy: Dep
   def upickleIvy: Dep
-  def circeCoreIvy: Dep
-  def circeGenericIvy: Dep
-  def circeParserIvy: Dep
-  override def ivyDeps = super.ivyDeps() ++ Some(osLibIvy) ++ Some(upickleIvy) ++ Some(circeCoreIvy) ++ Some(circeGenericIvy) ++ Some(circeParserIvy)
+  override def ivyDeps = super.ivyDeps() ++ Some(osLibIvy) ++ Some(upickleIvy)
 }
 
 trait HasRVDecoderDBResource extends ScalaModule {
