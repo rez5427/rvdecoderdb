@@ -157,7 +157,6 @@ object sailCodeGen extends App {
         ).mkString(", ") + ")" + " <-> " + 
         encHelper(inst.encoding.toString.toList.drop(16), inst.args.sortBy(arg => -arg.msb), Nil).mkString(" @ ")
     } else {
-      println(inst.encoding.toString)
       "mapping clause encdec = " + inst.name.toUpperCase.replace(".", "_") + "(" + 
         inst.args.filter(arg => !arg.toString.contains("hi")).map(
           arg => {

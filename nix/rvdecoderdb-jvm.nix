@@ -24,7 +24,7 @@ publishMillJar {
 
   buildInputs = [
     rvdecoderdbDeps.setupHook
-  ];
+  ];z
 
   publishTargets = [
     "rvdecoderdb.jvm"
