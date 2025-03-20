@@ -16,7 +16,6 @@ object Arch {
     val parsedMarch = march.replace("rv64g", "rv64imafd").replace("rv32g", "rv32imafd")
 
     if (xlen == 0 || !List("rv64i", "rv32i", "rv32e").exists(parsedMarch.startsWith)) {
-      println(s"Invalid march string: $march")
       return None
     }
 
@@ -483,29 +482,25 @@ object sailCodeGen extends App {
     )
   }
 
-  if (args.isEmpty) {
-    println("No input parameters provided.")
-  } else {
-    val march = args(0)
-    println(s"Parsing march: $march")
+  require(args.nonEmpty, "No input parameters provided.")
+  val march = args(0)
     
-    val arch = Arch.fromMarch(march)
+  val arch = Arch.fromMarch(march)
 
-    val csrPath = os.pwd / "sailcodegen" / "jvm" / "src" / "config" / (arch match {
-      case Some(a) if a.xlen == 32 => "csr32.json"
-      case Some(a) if a.xlen == 64 => "csr64.json"
-      case _ => throw new IllegalArgumentException("Invalid arch or xlen")
-    })
-    val csrs = read[Seq[CSR]](os.read(csrPath))
+  val csrPath = os.pwd / "sailcodegen" / "jvm" / "src" / "config" / (arch match {
+    case Some(a) if a.xlen == 32 => "csr32.json"
+    case Some(a) if a.xlen == 64 => "csr64.json"
+    case _ => throw new IllegalArgumentException("Invalid arch or xlen")
+  })
+  val csrs = read[Seq[CSR]](os.read(csrPath))
 
-    genExtEnable(arch.get)
-    genRVXLENSail(arch.get)
-    genRVSail(arch.get)
-    genGPRRW(arch.get)
+  genExtEnable(arch.get)
+  genRVXLENSail(arch.get)
+  genRVSail(arch.get)
+  genGPRRW(arch.get)
 
-    genArchStatesReset(arch.get, csrs)
-    genArchStatesDef(arch.get, csrs)
-    genArchStatesRW(arch.get, csrs)
-    genCSRBFDef(csrs)
-  }
+  genArchStatesReset(arch.get, csrs)
+  genArchStatesDef(arch.get, csrs)
+  genArchStatesRW(arch.get, csrs)
+  genCSRBFDef(csrs)
 }
