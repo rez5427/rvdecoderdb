@@ -1,9 +1,13 @@
 { lib
-, fetchMillDeps
 , publishMillJar
+, writeShellApplication
+, mill
+, mill-ivy-fetcher
 }:
-let
-  rvdecoderdbSrc = with lib.fileset; toSource {
+publishMillJar rec {
+  name = "rvdecoderdb";
+
+  src = with lib.fileset; toSource {
     fileset = unions [
       ../build.mill
       ../common.mill
@@ -11,26 +15,25 @@ let
     ];
     root = ../.;
   };
-  rvdecoderdbDeps = fetchMillDeps {
-    name = "rvdecoderdb";
-    src = rvdecoderdbSrc;
-    millDepsHash = "sha256-j6ixFkxLsm8ihDLFkkJDePVuS2yVFmX3B1gOUVguCHQ=";
-  };
-in
-publishMillJar {
-  name = "rvdecoderdb";
-
-  src = rvdecoderdbSrc;
-
-  buildInputs = [
-    rvdecoderdbDeps.setupHook
-  ];
 
   publishTargets = [
     "rvdecoderdb.jvm"
   ];
 
-  passthru = {
-    inherit rvdecoderdbSrc;
+  lockFile = ./rvdecoderdb-jvm-mill-lock.nix;
+
+  passthru.bump = writeShellApplication {
+    name = "bump-rvdecoderdb";
+    runtimeInputs = [
+      mill
+      mill-ivy-fetcher
+    ];
+    text = ''
+      sourceDir=$(mktemp -d -t 'rvdecoderdb_src_XXX')
+      cp -rT ${src} "$sourceDir"/rvdecoderdb
+      chmod -R u+w "$sourceDir"
+
+      mif run -p "$sourceDir"/rvdecoderdb -o ./nix/chisel-mill-lock.nix
+    '';
   };
 }
