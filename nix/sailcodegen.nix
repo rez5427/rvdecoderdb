@@ -5,6 +5,8 @@
 , fetchMillDeps
 , mill
 , z3
+, gmp
+, zlib
 }:
 
 let
@@ -70,10 +72,13 @@ stdenv.mkDerivation {
     sail
     mill
     rvdecoderdbDeps.setupHook
+    gmp
+    zlib
   ];
 
   buildInputs = with riscv-opcodes; [
     rvdecoderdbtestDeps.setupHook
+    ocamlPackages'.sail
   ];
 
   buildPhase = ''
@@ -98,7 +103,19 @@ stdenv.mkDerivation {
       ./rvdecoderdbtest/jvm/src/sail/rvcore/sailexpose.sail \
       -o ./rvdecoderdbtest/jvm/src/sail/rvcore/rv_model
 
-    cc -g $C_FLAGS ./rvdecoderdbtest/jvm/src/sail/rvcore/rv_model.c $C_SRCS $SAIL_LIB_DIR/*.c $C_LIBS -o $out/bin/rv
-    ./rv
+    cc -g \
+      -I ${ocamlPackages'.sail.src}/lib \
+      -I ./rvdecoderdbtest/jvm/src/sail/c \
+      ./rvdecoderdbtest/jvm/src/sail/rvcore/rv_model.c \
+      ./rvdecoderdbtest/jvm/src/sail/c/lib.c \
+      ./rvdecoderdbtest/jvm/src/sail/c/rv_sim.c \
+      ${ocamlPackages'.sail.src}/lib/*.c \
+      -lgmp -lz \
+      -o ./rvdecoderdbtest/jvm/src/rv
+  '';
+
+  installPhase = ''
+    mkdir -p $out/bin
+    cp ./rvdecoderdbtest/jvm/src/rv $out/bin/
   '';
 }
