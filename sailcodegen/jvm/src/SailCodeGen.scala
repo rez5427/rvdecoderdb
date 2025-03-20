@@ -29,7 +29,6 @@ object Arch {
   }
 }
 
-
 case class Bitfields(bfname: String, bfpos: String)
 
 object Bitfields {
@@ -158,7 +157,7 @@ object sailCodeGen extends App {
   }
 
   def genSailExcute(arch: Arch, inst : Instruction) : String = {
-    val path = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "inst" / arch.xlen.toString / inst.instructionSet.name / inst.name.replace(".", "_")
+    val path = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "inst" / arch.xlen.toString / inst.instructionSet.name / inst.name.replace(".", "_")
 
     if (os.exists(path)) {
       "function clause execute " + "(" + 
@@ -217,9 +216,9 @@ object sailCodeGen extends App {
   }
 
   def genRVSail(arch: Arch) : Unit = {
-    val rvCorePath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "rv_core.sail"
+    val rvCorePath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "rvcore" / "rv_core.sail"
 
-    os.write.over(rvCorePath, org.chipsalliance.rvdecoderdb.instructions(os.pwd / "rvdecoderdbtest" / "jvm" / "riscv-opcodes")
+    os.write.over(rvCorePath, org.chipsalliance.rvdecoderdb.instructions(os.pwd / "sailcodegen" / "jvm" / "riscv-opcodes")
       .filter(inst => !inst.name.endsWith(".N"))
       .filter(inst => 
         arch.extensions.exists(ext => inst.instructionSet.name.endsWith(s"rv_$ext"))
@@ -256,7 +255,7 @@ object sailCodeGen extends App {
     (csr.bitfields match { 
       case Left(pos) => "bitSets"
       case Right(bfs) => bfs.map { bf =>
-        val path = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "csr" / "W" / csr.csrname / bf.bfname
+        val path = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "csr" / "W" / csr.csrname / bf.bfname
 
         if (csr.width == "64") {
           s"function set_${csr.csrname}_${bf.bfname}(v : bits(64)) -> unit = ${if (os.exists(path)) {
@@ -297,7 +296,7 @@ object sailCodeGen extends App {
     (csr.bitfields match { 
       case Left(pos) => "bitSets"
       case Right(bfs) => bfs.map { bf =>
-        val path = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "csr" / "R" / csr.csrname / bf.bfname
+        val path = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "csr" / "R" / csr.csrname / bf.bfname
 
         if (csr.width == "64") {
           s"function get_${csr.csrname}_${bf.bfname}() -> bits(64) = ${if (os.exists(path)) {
@@ -375,7 +374,7 @@ object sailCodeGen extends App {
   }
 
   def genArchStatesDef(arch: Arch, csrs: Seq[CSR]) : Unit = {
-    val archStatesPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStates.sail"
+    val archStatesPath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStates.sail"
     
     os.write.over(archStatesPath, 
       "// GPRs\n" +
@@ -384,22 +383,59 @@ object sailCodeGen extends App {
       genCSRRegDef(csrs) + "\n" +
       "// PC\n" +
       "register PC : XLENBITS\n" +
-      "register nextPC : XLENBITS\n" +
       "// Privilege\n" +
       "register cur_privilege : Privilege\n"
     )
   }
 
   def genCSRBFDef(csrs: Seq[CSR]) : Unit = {
-    val csrBFPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStateCsrBF.sail"
+    val csrBFPath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStateCsrBF.sail"
 
     os.write.over(csrBFPath, csrs.map( csr =>
       genCSRBitfields(csr) + "\n\n"
     ))
   }
 
+  def genArchStatesReset(arch: Arch, csrs: Seq[CSR]) : Unit = {
+    val archStatesPath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStatesReset.sail"
+
+    val range = if (arch.extensions.contains("e")) 0 to 15 else 0 to 31
+
+    // generate reset
+    os.write.over(archStatesPath, 
+      "// GPRs\n" + 
+      (
+        range.map(i => s"val get_resetval_x$i = pure \"get_resetval_x$i\" : unit -> " + (if (arch.xlen == 32) "bits(32)" else "bits(64)")).mkString("\n") + "\n" +
+        range.map(i => s"function reset_x$i() : unit -> unit = { x$i = get_resetval_x$i(); }").mkString("\n")
+      ) + 
+      "\n" + 
+      "// CSRs\n" + 
+      csrs.map(csr => 
+        s"val get_resetval_${csr.csrname} = pure \"get_resetval_${csr.csrname}\" : unit -> " + (if (csr.width == "32") "bits(32)" else "bits(64)")
+        ).mkString("\n")
+      + "\n" +
+      csrs.map(csr => 
+        s"function reset_${csr.csrname}() : unit -> unit = { ${csr.csrname} = Mk_${csr.csrname.toUpperCase}(get_resetval_${csr.csrname}()) }"
+        ).mkString("\n")
+    )
+
+    // generate overall reset
+    os.write.append(archStatesPath, 
+      "\n" + 
+      "function reset() : unit -> unit = {\n" + 
+      (
+        range.map(i => s"\treset_x$i();").mkString("\n")
+      ) + 
+      "\n" + 
+      csrs.map(csr => 
+        s"\treset_${csr.csrname}();"
+        ).mkString("\n") + 
+      "\n}"
+    )
+  }
+
   def genArchStatesRW(arch: Arch, csrs: Seq[CSR]) : Unit = {
-    val archStatesPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStatesRW.sail"
+    val archStatesPath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStatesRW.sail"
 
     os.write.over(archStatesPath, 
       "// GPRs\n" + 
@@ -421,13 +457,13 @@ object sailCodeGen extends App {
   }
 
   def genExtEnable(arch: Arch) : Unit = {
-    val extPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStatesPrivEnable.sail"
+    val extPath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "rvcore" / "arch" / "ArchStatesPrivEnable.sail"
 
     os.write.over(extPath, arch.extensions.map(ext => s"function clause extensionEnabled(Ext_${ext.toUpperCase}) = true\n").mkString)
   }
 
   def genRVXLENSail(arch: Arch) : Unit = {
-    val xlenPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "sail" / "rvcore" / "rv_xlen.sail"
+    val xlenPath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "rvcore" / "rv_xlen.sail"
 
     os.write.over(xlenPath, 
       if (arch.xlen == 32) {
@@ -455,7 +491,7 @@ object sailCodeGen extends App {
     
     val arch = Arch.fromMarch(march)
 
-    val csrPath = os.pwd / "rvdecoderdbtest" / "jvm" / "src" / "config" / (arch match {
+    val csrPath = os.pwd / "sailcodegen" / "jvm" / "src" / "config" / (arch match {
       case Some(a) if a.xlen == 32 => "csr32.json"
       case Some(a) if a.xlen == 64 => "csr64.json"
       case _ => throw new IllegalArgumentException("Invalid arch or xlen")
@@ -466,6 +502,8 @@ object sailCodeGen extends App {
     genRVXLENSail(arch.get)
     genRVSail(arch.get)
     genGPRRW(arch.get)
+
+    genArchStatesReset(arch.get, csrs)
     genArchStatesDef(arch.get, csrs)
     genArchStatesRW(arch.get, csrs)
     genCSRBFDef(csrs)

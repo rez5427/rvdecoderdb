@@ -1,4 +1,7 @@
 function step(unit) : unit -> unit = {
+  if (is_reset()) then {
+    reset()
+  };
   let inst = inst_fetch(PC);
   if (inst[1 .. 0] != 0b11) then {
     //let ast = ext_decode_compressed(inst[15 .. 0]);
@@ -13,6 +16,5 @@ function step(unit) : unit -> unit = {
 }
 
 function main() : unit -> unit = {
-  init();
   step();
 }

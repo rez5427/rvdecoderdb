@@ -46,8 +46,6 @@ let
     };
   });
   riscv-opcodes = {
-    pname = "riscv-opcodes";
-    version = "8899b32f218c85bf2559fa95f226bc2533316802";
     src = fetchFromGitHub {
       owner = "riscv";
       repo = "riscv-opcodes";
@@ -55,7 +53,6 @@ let
       fetchSubmodules = false;
       sha256 = "sha256-7CV/T8gnE7+ZPfYbn38Zx8fYUosTc8bt93wk5nmxu2c=";
     };
-    date = "2025-02-14";
   };
 in
 
@@ -82,6 +79,7 @@ stdenv.mkDerivation {
   ];
 
   buildPhase = ''
+    runHook preBuild
     cp -r ${riscv-opcodes.src} sailcodegen/jvm/riscv-opcodes
     export SAIL_FLAGS="--require-version 0.18 --strict-var -dno_cast"
     mill -i 'sailcodegen.jvm.runMain' sailCodeGen rv64i
@@ -98,7 +96,7 @@ stdenv.mkDerivation {
       ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStateCsrBF.sail \
       ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStates.sail \
       ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStatesRW.sail \
-      ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStatesInit.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStatesReset.sail \
       ./sailcodegen/jvm/src/sail/rvcore/rv_core.sail \
       ./sailcodegen/jvm/src/sail/rvcore/sailexpose.sail \
       -o ./sailcodegen/jvm/src/sail/rvcore/rv_model
@@ -106,16 +104,20 @@ stdenv.mkDerivation {
     cc -g \
       -I ${ocamlPackages'.sail.src}/lib \
       -I ./sailcodegen/jvm/src/sail/c \
-      ./sailcodegen/jvm/src/sail/rvcore/rv_model.c \
       ./sailcodegen/jvm/src/sail/c/lib.c \
       ./sailcodegen/jvm/src/sail/c/rv_sim.c \
+      ./sailcodegen/jvm/src/sail/rvcore/rv_model.c \
       ${ocamlPackages'.sail.src}/lib/*.c \
       -lgmp -lz \
       -o ./sailcodegen/jvm/src/rv
+
+    runHook postBuild
   '';
 
   installPhase = ''
+    runHook preInstall
     mkdir -p $out/bin
     cp ./sailcodegen/jvm/src/rv $out/bin/
+    runHook postInstall
   '';
 }

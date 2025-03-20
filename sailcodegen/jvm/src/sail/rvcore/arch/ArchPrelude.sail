@@ -14,6 +14,8 @@ function internal_error(s) = {
     throw Error_internal_error()
 }
 
+register nextPC : XLENBITS
+
 // GPR
 type regidx  = bits(5)
 
