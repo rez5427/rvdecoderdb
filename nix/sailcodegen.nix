@@ -10,23 +10,23 @@
 }:
 
 let
-  rvdecoderdbtestSrc = with lib.fileset; toSource {
+  sailCodeGenSrc = with lib.fileset; toSource {
     fileset = unions [
       ../build.mill
       ../common.mill
-      ../rvdecoderdbtest
+      ../sailcodegen
       ../rvdecoderdb
     ];
     root = ../.;
   };
-  rvdecoderdbtestDeps = fetchMillDeps {
-    name = "rvdecoderdbtest";
-    src = rvdecoderdbtestSrc;
+  sailCodeGenDeps = fetchMillDeps {
+    name = "sailCodeGen";
+    src = sailCodeGenSrc;
     millDepsHash = "sha256-j6ixFkxLsm8ihDLFkkJDePVuS2yVFmX3B1gOUVguCHQ=";
   };
   rvdecoderdbDeps = fetchMillDeps {
     name = "rvdecoderdb";
-    src = rvdecoderdbtestSrc;
+    src = sailCodeGenSrc;
     millDepsHash = "sha256-j6ixFkxLsm8ihDLFkkJDePVuS2yVFmX3B1gOUVguCHQ=";
   };
 in
@@ -61,8 +61,8 @@ in
 
 
 stdenv.mkDerivation {
-  name = "sail";
-  src = rvdecoderdbtestSrc;
+  name = "sailcodegen";
+  src = sailCodeGenSrc;
 
   nativeBuildInputs = with ocamlPackages'; [
     ocamlbuild
@@ -77,45 +77,45 @@ stdenv.mkDerivation {
   ];
 
   buildInputs = with riscv-opcodes; [
-    rvdecoderdbtestDeps.setupHook
+    sailCodeGenDeps.setupHook
     ocamlPackages'.sail
   ];
 
   buildPhase = ''
-    cp -r ${riscv-opcodes.src} rvdecoderdbtest/jvm/riscv-opcodes
+    cp -r ${riscv-opcodes.src} sailcodegen/jvm/riscv-opcodes
     export SAIL_FLAGS="--require-version 0.18 --strict-var -dno_cast"
-    mill -i 'rvdecoderdbtest.jvm.runMain' sailCodeGen rv64i
+    mill -i 'sailcodegen.jvm.runMain' sailCodeGen rv64i
 
     sail $SAIL_FLAGS -O -Oconstant_fold -memo_z3 -c \
       -c_include ../c/lib.h \
       -c_no_main \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/lib/prelude.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/rv_xlen.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/capi.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/lib/scattered.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/arch/ArchPrelude.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/arch/ArchStatesPrivEnable.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/arch/ArchStateCsrBF.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/arch/ArchStates.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/arch/ArchStatesRW.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/arch/ArchStatesInit.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/rv_core.sail \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/sailexpose.sail \
-      -o ./rvdecoderdbtest/jvm/src/sail/rvcore/rv_model
+      ./sailcodegen/jvm/src/sail/rvcore/lib/prelude.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/rv_xlen.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/capi.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/lib/scattered.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/arch/ArchPrelude.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStatesPrivEnable.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStateCsrBF.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStates.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStatesRW.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/arch/ArchStatesInit.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/rv_core.sail \
+      ./sailcodegen/jvm/src/sail/rvcore/sailexpose.sail \
+      -o ./sailcodegen/jvm/src/sail/rvcore/rv_model
 
     cc -g \
       -I ${ocamlPackages'.sail.src}/lib \
-      -I ./rvdecoderdbtest/jvm/src/sail/c \
-      ./rvdecoderdbtest/jvm/src/sail/rvcore/rv_model.c \
-      ./rvdecoderdbtest/jvm/src/sail/c/lib.c \
-      ./rvdecoderdbtest/jvm/src/sail/c/rv_sim.c \
+      -I ./sailcodegen/jvm/src/sail/c \
+      ./sailcodegen/jvm/src/sail/rvcore/rv_model.c \
+      ./sailcodegen/jvm/src/sail/c/lib.c \
+      ./sailcodegen/jvm/src/sail/c/rv_sim.c \
       ${ocamlPackages'.sail.src}/lib/*.c \
       -lgmp -lz \
-      -o ./rvdecoderdbtest/jvm/src/rv
+      -o ./sailcodegen/jvm/src/rv
   '';
 
   installPhase = ''
     mkdir -p $out/bin
-    cp ./rvdecoderdbtest/jvm/src/rv $out/bin/
+    cp ./sailcodegen/jvm/src/rv $out/bin/
   '';
 }
