@@ -33,7 +33,10 @@ publishMillJar rec {
       cp -rT ${src} "$sourceDir"/rvdecoderdb
       chmod -R u+w "$sourceDir"
 
-      mif run -p "$sourceDir"/rvdecoderdb -o ./nix/chisel-mill-lock.nix
+      mif run \
+        --targets rvdecoderdb.jvm \
+        -p "$sourceDir"/rvdecoderdb \
+        -o ./nix/rvdecoderdb-mill-lock.nix
     '';
   };
 }

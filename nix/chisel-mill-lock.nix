@@ -168,24 +168,6 @@
     passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/1.1.1";
   };
 
-  "com.lihaoyi_geny_sjs1_2.13-1.1.0" = fetchurl {
-    name = "com.lihaoyi_geny_sjs1_2.13-1.1.0";
-    hash = "sha256-kG2oosEHRNP15BzIIgpy/qbNE1tioqARBiguGk+p5GU=";
-    url = "https://repo1.maven.org/maven2/com/lihaoyi/geny_sjs1_2.13/1.1.0/geny_sjs1_2.13-1.1.0.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/geny_sjs1_2.13-1.1.0.pom"
-            
-      downloadedFile=$TMPDIR/geny_sjs1_2.13-1.1.0.jar
-      tryDownload "https://repo1.maven.org/maven2/com/lihaoyi/geny_sjs1_2.13/1.1.0/geny_sjs1_2.13-1.1.0.jar"
-      cp -v "$TMPDIR/geny_sjs1_2.13-1.1.0.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/geny_sjs1_2.13/1.1.0";
-  };
-
   "com.lihaoyi_mainargs_2.13-0.7.6" = fetchurl {
     name = "com.lihaoyi_mainargs_2.13-0.7.6";
     hash = "sha256-3VNPfYCWjDt/Sln9JRJ3/aqxZT72ZqwdVdE7ONtpGXM=";
@@ -456,24 +438,6 @@
     passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/ujson_2.13/3.3.1";
   };
 
-  "com.lihaoyi_ujson_sjs1_2.13-3.3.1" = fetchurl {
-    name = "com.lihaoyi_ujson_sjs1_2.13-3.3.1";
-    hash = "sha256-PZeMf75al96n03VG1ZA92HikI+SPZ4BI5WxH9IqzvIo=";
-    url = "https://repo1.maven.org/maven2/com/lihaoyi/ujson_sjs1_2.13/3.3.1/ujson_sjs1_2.13-3.3.1.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/ujson_sjs1_2.13-3.3.1.pom"
-            
-      downloadedFile=$TMPDIR/ujson_sjs1_2.13-3.3.1.jar
-      tryDownload "https://repo1.maven.org/maven2/com/lihaoyi/ujson_sjs1_2.13/3.3.1/ujson_sjs1_2.13-3.3.1.jar"
-      cp -v "$TMPDIR/ujson_sjs1_2.13-3.3.1.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/ujson_sjs1_2.13/3.3.1";
-  };
-
   "com.lihaoyi_upack_2.13-3.3.1" = fetchurl {
     name = "com.lihaoyi_upack_2.13-3.3.1";
     hash = "sha256-rbWiMl6+OXfWP2HjpMbvkToBzWhuW2hsJD/4dd+XmOs=";
@@ -490,24 +454,6 @@
 
     '';
     passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/upack_2.13/3.3.1";
-  };
-
-  "com.lihaoyi_upack_sjs1_2.13-3.3.1" = fetchurl {
-    name = "com.lihaoyi_upack_sjs1_2.13-3.3.1";
-    hash = "sha256-7ZReBy2HP7M9w35lYOK4I1WyUNTzm+YDqBFTPNnkY7k=";
-    url = "https://repo1.maven.org/maven2/com/lihaoyi/upack_sjs1_2.13/3.3.1/upack_sjs1_2.13-3.3.1.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/upack_sjs1_2.13-3.3.1.pom"
-            
-      downloadedFile=$TMPDIR/upack_sjs1_2.13-3.3.1.jar
-      tryDownload "https://repo1.maven.org/maven2/com/lihaoyi/upack_sjs1_2.13/3.3.1/upack_sjs1_2.13-3.3.1.jar"
-      cp -v "$TMPDIR/upack_sjs1_2.13-3.3.1.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/upack_sjs1_2.13/3.3.1";
   };
 
   "com.lihaoyi_upickle-core_2.13-3.3.1" = fetchurl {
@@ -528,24 +474,6 @@
     passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_2.13/3.3.1";
   };
 
-  "com.lihaoyi_upickle-core_sjs1_2.13-3.3.1" = fetchurl {
-    name = "com.lihaoyi_upickle-core_sjs1_2.13-3.3.1";
-    hash = "sha256-i1Ch+lmsgG6bBscj6K7ghmWzjTZRqkDpYTFYsmRkT1I=";
-    url = "https://repo1.maven.org/maven2/com/lihaoyi/upickle-core_sjs1_2.13/3.3.1/upickle-core_sjs1_2.13-3.3.1.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/upickle-core_sjs1_2.13-3.3.1.pom"
-            
-      downloadedFile=$TMPDIR/upickle-core_sjs1_2.13-3.3.1.jar
-      tryDownload "https://repo1.maven.org/maven2/com/lihaoyi/upickle-core_sjs1_2.13/3.3.1/upickle-core_sjs1_2.13-3.3.1.jar"
-      cp -v "$TMPDIR/upickle-core_sjs1_2.13-3.3.1.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_sjs1_2.13/3.3.1";
-  };
-
   "com.lihaoyi_upickle-implicits_2.13-3.3.1" = fetchurl {
     name = "com.lihaoyi_upickle-implicits_2.13-3.3.1";
     hash = "sha256-LKWPAok7DL+YyfLv6yTwuyAG8z/74mzMrsqgUvUw9bM=";
@@ -564,24 +492,6 @@
     passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_2.13/3.3.1";
   };
 
-  "com.lihaoyi_upickle-implicits_sjs1_2.13-3.3.1" = fetchurl {
-    name = "com.lihaoyi_upickle-implicits_sjs1_2.13-3.3.1";
-    hash = "sha256-zSG8hP4BFB4ZYgmTlEA4C2KU3uxHUhMqBnV0XsOWaEM=";
-    url = "https://repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_sjs1_2.13/3.3.1/upickle-implicits_sjs1_2.13-3.3.1.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/upickle-implicits_sjs1_2.13-3.3.1.pom"
-            
-      downloadedFile=$TMPDIR/upickle-implicits_sjs1_2.13-3.3.1.jar
-      tryDownload "https://repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_sjs1_2.13/3.3.1/upickle-implicits_sjs1_2.13-3.3.1.jar"
-      cp -v "$TMPDIR/upickle-implicits_sjs1_2.13-3.3.1.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_sjs1_2.13/3.3.1";
-  };
-
   "com.lihaoyi_upickle_2.13-3.3.1" = fetchurl {
     name = "com.lihaoyi_upickle_2.13-3.3.1";
     hash = "sha256-1vHU3mGQey3zvyUHK9uCx+9pUnpnWe3zEMlyb8QqUFc=";
@@ -598,24 +508,6 @@
 
     '';
     passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/upickle_2.13/3.3.1";
-  };
-
-  "com.lihaoyi_upickle_sjs1_2.13-3.3.1" = fetchurl {
-    name = "com.lihaoyi_upickle_sjs1_2.13-3.3.1";
-    hash = "sha256-B3RpMVyxsMZirEJjQSlhKauL7VSsdnRTjq0jUazYtow=";
-    url = "https://repo1.maven.org/maven2/com/lihaoyi/upickle_sjs1_2.13/3.3.1/upickle_sjs1_2.13-3.3.1.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/upickle_sjs1_2.13-3.3.1.pom"
-            
-      downloadedFile=$TMPDIR/upickle_sjs1_2.13-3.3.1.jar
-      tryDownload "https://repo1.maven.org/maven2/com/lihaoyi/upickle_sjs1_2.13/3.3.1/upickle_sjs1_2.13-3.3.1.jar"
-      cp -v "$TMPDIR/upickle_sjs1_2.13-3.3.1.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/com/lihaoyi/upickle_sjs1_2.13/3.3.1";
   };
 
   "com.lmax_disruptor-3.4.2" = fetchurl {
@@ -774,6 +666,24 @@
     passthru.installPath = "https/repo1.maven.org/maven2/org/jline/jline/3.26.3";
   };
 
+  "org.jline_jline-3.27.1" = fetchurl {
+    name = "org.jline_jline-3.27.1";
+    hash = "sha256-GnI5uLuXJN7AvsltUpzwzGNuFYkfSQ4mxy4XLOODsmU=";
+    url = "https://repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1.pom";
+    recursiveHash = true;
+    downloadToTemp = true;
+    postFetch = ''
+      mkdir -p "$out"
+      cp -v "$downloadedFile" "$out/jline-3.27.1.pom"
+            
+      downloadedFile=$TMPDIR/jline-3.27.1-jdk8.jar
+      tryDownload "https://repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+      cp -v "$TMPDIR/jline-3.27.1-jdk8.jar" "$out/"
+
+    '';
+    passthru.installPath = "https/repo1.maven.org/maven2/org/jline/jline/3.27.1";
+  };
+
   "org.jline_jline-native-3.27.1" = fetchurl {
     name = "org.jline_jline-native-3.27.1";
     hash = "sha256-XyhCZMcwu/OXdQ8BTM+qGgjGzMano5DJoghn1+/yr+Q=";
@@ -870,60 +780,6 @@
     passthru.installPath = "https/repo1.maven.org/maven2/org/mockito/mockito-bom/4.11.0";
   };
 
-  "org.scala-js_scalajs-compiler_2.13.15-1.14.0" = fetchurl {
-    name = "org.scala-js_scalajs-compiler_2.13.15-1.14.0";
-    hash = "sha256-xbV//Fp1u9txUKWxKWzxPS5KQ6HCcqybgf6I92vGya0=";
-    url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.13.15/1.14.0/scalajs-compiler_2.13.15-1.14.0.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/scalajs-compiler_2.13.15-1.14.0.pom"
-            
-      downloadedFile=$TMPDIR/scalajs-compiler_2.13.15-1.14.0.jar
-      tryDownload "https://repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.13.15/1.14.0/scalajs-compiler_2.13.15-1.14.0.jar"
-      cp -v "$TMPDIR/scalajs-compiler_2.13.15-1.14.0.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.13.15/1.14.0";
-  };
-
-  "org.scala-js_scalajs-javalib-1.14.0" = fetchurl {
-    name = "org.scala-js_scalajs-javalib-1.14.0";
-    hash = "sha256-Vg9c1U7zFYLWIXrqIskmNrW8w0g9+KA7A7UAJQiI9l4=";
-    url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.14.0/scalajs-javalib-1.14.0.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/scalajs-javalib-1.14.0.pom"
-            
-      downloadedFile=$TMPDIR/scalajs-javalib-1.14.0.jar
-      tryDownload "https://repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.14.0/scalajs-javalib-1.14.0.jar"
-      cp -v "$TMPDIR/scalajs-javalib-1.14.0.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.14.0";
-  };
-
-  "org.scala-js_scalajs-library_2.13-1.14.0" = fetchurl {
-    name = "org.scala-js_scalajs-library_2.13-1.14.0";
-    hash = "sha256-AgfsghbN/ugHhaDd8SRiqFmUbIKqVZGhGc+EBOEVhFg=";
-    url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.14.0/scalajs-library_2.13-1.14.0.pom";
-    recursiveHash = true;
-    downloadToTemp = true;
-    postFetch = ''
-      mkdir -p "$out"
-      cp -v "$downloadedFile" "$out/scalajs-library_2.13-1.14.0.pom"
-            
-      downloadedFile=$TMPDIR/scalajs-library_2.13-1.14.0.jar
-      tryDownload "https://repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.14.0/scalajs-library_2.13-1.14.0.jar"
-      cp -v "$TMPDIR/scalajs-library_2.13-1.14.0.jar" "$out/"
-
-    '';
-    passthru.installPath = "https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.14.0";
-  };
-
   "org.scala-lang_scala-compiler-2.13.15" = fetchurl {
     name = "org.scala-lang_scala-compiler-2.13.15";
     hash = "sha256-kvqWoFLNy3LGIbD6l67f66OyJq/K2L4rTStLiDzIzm8=";
@@ -940,6 +796,24 @@
 
     '';
     passthru.installPath = "https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.15";
+  };
+
+  "org.scala-lang_scala-compiler-2.13.16" = fetchurl {
+    name = "org.scala-lang_scala-compiler-2.13.16";
+    hash = "sha256-uPxnpCaIbviBXMJjY9+MSQCPa6iqEx/zgtO926dxv+U=";
+    url = "https://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.pom";
+    recursiveHash = true;
+    downloadToTemp = true;
+    postFetch = ''
+      mkdir -p "$out"
+      cp -v "$downloadedFile" "$out/scala-compiler-2.13.16.pom"
+            
+      downloadedFile=$TMPDIR/scala-compiler-2.13.16.jar
+      tryDownload "https://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar"
+      cp -v "$TMPDIR/scala-compiler-2.13.16.jar" "$out/"
+
+    '';
+    passthru.installPath = "https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16";
   };
 
   "org.scala-lang_scala-library-2.13.15" = fetchurl {
@@ -960,6 +834,24 @@
     passthru.installPath = "https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15";
   };
 
+  "org.scala-lang_scala-library-2.13.16" = fetchurl {
+    name = "org.scala-lang_scala-library-2.13.16";
+    hash = "sha256-7/NvAxKKPtghJ/+pTNxvmIAiAdtQXRTUvDwGGXwpnpU=";
+    url = "https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.pom";
+    recursiveHash = true;
+    downloadToTemp = true;
+    postFetch = ''
+      mkdir -p "$out"
+      cp -v "$downloadedFile" "$out/scala-library-2.13.16.pom"
+            
+      downloadedFile=$TMPDIR/scala-library-2.13.16.jar
+      tryDownload "https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+      cp -v "$TMPDIR/scala-library-2.13.16.jar" "$out/"
+
+    '';
+    passthru.installPath = "https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16";
+  };
+
   "org.scala-lang_scala-reflect-2.13.15" = fetchurl {
     name = "org.scala-lang_scala-reflect-2.13.15";
     hash = "sha256-zmUU4hTEf5HC311UaNIHmzjSwWSbjXn6DyPP7ZzFy/8=";
@@ -976,6 +868,24 @@
 
     '';
     passthru.installPath = "https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.15";
+  };
+
+  "org.scala-lang_scala-reflect-2.13.16" = fetchurl {
+    name = "org.scala-lang_scala-reflect-2.13.16";
+    hash = "sha256-Y/cXrptUKnH51rsTo8reYZbqbrWuO+fohzQW3z9Nx90=";
+    url = "https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.pom";
+    recursiveHash = true;
+    downloadToTemp = true;
+    postFetch = ''
+      mkdir -p "$out"
+      cp -v "$downloadedFile" "$out/scala-reflect-2.13.16.pom"
+            
+      downloadedFile=$TMPDIR/scala-reflect-2.13.16.jar
+      tryDownload "https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+      cp -v "$TMPDIR/scala-reflect-2.13.16.jar" "$out/"
+
+    '';
+    passthru.installPath = "https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16";
   };
 
   "org.scala-lang_scalap-2.13.15" = fetchurl {
@@ -1016,7 +926,7 @@
 
   "org.scala-sbt_compiler-bridge_2.13-1.10.7" = fetchurl {
     name = "org.scala-sbt_compiler-bridge_2.13-1.10.7";
-    hash = "sha256-9l1vxfLu6JEyJKdPaBO6RkEn/KoiW7d59C/xAQdeb+Y=";
+    hash = "sha256-jDtX3vTy7c5Ju7Yk792idscpXxfzqyRm0tubEazpQSY=";
     url = "https://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_2.13/1.10.7/compiler-bridge_2.13-1.10.7.pom";
     recursiveHash = true;
     downloadToTemp = true;
@@ -1024,6 +934,11 @@
       mkdir -p "$out"
       cp -v "$downloadedFile" "$out/compiler-bridge_2.13-1.10.7.pom"
             
+      downloadedFile=$TMPDIR/compiler-bridge_2.13-1.10.7-sources.jar
+      tryDownload "https://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_2.13/1.10.7/compiler-bridge_2.13-1.10.7-sources.jar"
+      cp -v "$TMPDIR/compiler-bridge_2.13-1.10.7-sources.jar" "$out/"
+
+      
       downloadedFile=$TMPDIR/compiler-bridge_2.13-1.10.7.jar
       tryDownload "https://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_2.13/1.10.7/compiler-bridge_2.13-1.10.7.jar"
       cp -v "$TMPDIR/compiler-bridge_2.13-1.10.7.jar" "$out/"
@@ -1052,7 +967,7 @@
 
   "org.scala-sbt_compiler-interface-1.10.7" = fetchurl {
     name = "org.scala-sbt_compiler-interface-1.10.7";
-    hash = "sha256-nFVs4vEVTEPSiGce3C77TTjvffSU+SMrn9KgV9xGVP0=";
+    hash = "sha256-kTQDHARJUF88Se2cOxq+vFt6hIPCn2rSQyGr96AMZWQ=";
     url = "https://repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.pom";
     recursiveHash = true;
     downloadToTemp = true;
@@ -1060,6 +975,11 @@
       mkdir -p "$out"
       cp -v "$downloadedFile" "$out/compiler-interface-1.10.7.pom"
             
+      downloadedFile=$TMPDIR/compiler-interface-1.10.7-sources.jar
+      tryDownload "https://repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7-sources.jar"
+      cp -v "$TMPDIR/compiler-interface-1.10.7-sources.jar" "$out/"
+
+      
       downloadedFile=$TMPDIR/compiler-interface-1.10.7.jar
       tryDownload "https://repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar"
       cp -v "$TMPDIR/compiler-interface-1.10.7.jar" "$out/"
@@ -1196,7 +1116,7 @@
 
   "org.scala-sbt_util-interface-1.10.7" = fetchurl {
     name = "org.scala-sbt_util-interface-1.10.7";
-    hash = "sha256-cIOD5+vCDptOP6jwds5yG+23h2H54npBzGu3jrCQlvQ=";
+    hash = "sha256-k9TTANJrA3RAapizDe0pMLT/CkPCLweVuT8fuc40Re0=";
     url = "https://repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.pom";
     recursiveHash = true;
     downloadToTemp = true;
@@ -1204,6 +1124,11 @@
       mkdir -p "$out"
       cp -v "$downloadedFile" "$out/util-interface-1.10.7.pom"
             
+      downloadedFile=$TMPDIR/util-interface-1.10.7-sources.jar
+      tryDownload "https://repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7-sources.jar"
+      cp -v "$TMPDIR/util-interface-1.10.7-sources.jar" "$out/"
+
+      
       downloadedFile=$TMPDIR/util-interface-1.10.7.jar
       tryDownload "https://repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"
       cp -v "$TMPDIR/util-interface-1.10.7.jar" "$out/"
@@ -1470,6 +1395,24 @@
     passthru.installPath = "https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.12";
   };
 
+  "io.github.java-diff-utils_java-diff-utils-4.15" = fetchurl {
+    name = "io.github.java-diff-utils_java-diff-utils-4.15";
+    hash = "sha256-SfOhFqK/GsStfRZLQm3yGJat/CQWb3YbJnoXd84l/R0=";
+    url = "https://repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.pom";
+    recursiveHash = true;
+    downloadToTemp = true;
+    postFetch = ''
+      mkdir -p "$out"
+      cp -v "$downloadedFile" "$out/java-diff-utils-4.15.pom"
+            
+      downloadedFile=$TMPDIR/java-diff-utils-4.15.jar
+      tryDownload "https://repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar"
+      cp -v "$TMPDIR/java-diff-utils-4.15.jar" "$out/"
+
+    '';
+    passthru.installPath = "https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15";
+  };
+
   "io.github.java-diff-utils_java-diff-utils-parent-4.12" = fetchurl {
     name = "io.github.java-diff-utils_java-diff-utils-parent-4.12";
     hash = "sha256-l9MekOAkDQrHpgMMLkbZQJtiaSmyE7h0XneiHciAFOI=";
@@ -1482,6 +1425,20 @@
       
     '';
     passthru.installPath = "https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils-parent/4.12";
+  };
+
+  "io.github.java-diff-utils_java-diff-utils-parent-4.15" = fetchurl {
+    name = "io.github.java-diff-utils_java-diff-utils-parent-4.15";
+    hash = "sha256-7U+fEo0qYFash7diRi0E8Ejv0MY8T70NzU+HswbmO34=";
+    url = "https://repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils-parent/4.15/java-diff-utils-parent-4.15.pom";
+    recursiveHash = true;
+    downloadToTemp = true;
+    postFetch = ''
+      mkdir -p "$out"
+      cp -v "$downloadedFile" "$out/java-diff-utils-parent-4.15.pom"
+      
+    '';
+    passthru.installPath = "https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils-parent/4.15";
   };
 
   "org.apache.groovy_groovy-bom-4.0.22" = fetchurl {
@@ -1717,4 +1674,4 @@
   };
 
 }
-# Project Source Hash:sha256-PpvaNhIlCSGxKe55dcxjzOuaJm877K/s8/dqMZo3QW8=
+# Project Source Hash:sha256-ue2hGEVND34dC9meO3E0Tr520oDiCo3gJFlyOv3DOMo=
