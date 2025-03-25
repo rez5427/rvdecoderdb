@@ -216,6 +216,7 @@ object sailCodeGen extends App {
 
   def genRVSail(arch: Arch) : Unit = {
     val rvCorePath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "rvcore" / "rv_core.sail"
+    val illegalInstPath = os.pwd / "sailcodegen" / "jvm" / "src" / "sail" / "inst" / arch.xlen.toString / "illegal"
 
     os.write.over(rvCorePath, org.chipsalliance.rvdecoderdb.instructions(os.pwd / "sailcodegen" / "jvm" / "riscv-opcodes")
       .filter(inst => !inst.name.endsWith(".N"))
@@ -227,7 +228,12 @@ object sailCodeGen extends App {
           case Some(instruction) => ""
           case None => genSailAst(inst) + "\n" + genSailEnc(inst) + "\n" + genSailExcute(arch, inst) + "\n"
         }
-      ).mkString)
+      ).mkString
+      + "mapping clause encdec = ILLEGAL(s) <-> s\n"
+      + "function clause execute (ILLEGAL(s)) = {"
+      + os.read(illegalInstPath).map(line => line).mkString
+      + "}"
+      )
   }
 
   def genCSRBitfields(csr: CSR) : String = {

@@ -52,7 +52,7 @@ uint64_t get_sip(unit) {
 }
 
 unit fence_i(uint16_t pred, uint16_t succ) {
-  printf("fence_i: pred = %x, succ = %x\n", pred, succ);
+  printf("fence_ii: pred = %x, succ = %x\n", pred, succ);
 }
 
 bool is_reset(unit) {

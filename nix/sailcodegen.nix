@@ -7,9 +7,27 @@
 , z3
 , gmp
 , zlib
+, rustPlatform
+, pkgs
+, tree
 }:
 
 let
+  # Rust部分构建
+  rustDeps = rustPlatform.buildRustPackage rec {
+    pname = "sail-rust";
+    version = "0.1.0";
+    
+    src = ../sailcodegen/jvm/src/sail/rust;
+    
+    cargoLock = {
+      lockFile = src + /Cargo.lock;
+      outputHashes = {};
+    };
+
+    buildType = "release";
+  };
+
   sailCodeGenSrc = with lib.fileset; toSource {
     fileset = unions [
       ../build.mill
@@ -60,6 +78,7 @@ in
 stdenv.mkDerivation {
   name = "sailcodegen";
   src = sailCodeGenSrc;
+  inherit rustDeps;
 
   nativeBuildInputs = with ocamlPackages'; [
     ocamlbuild
@@ -76,6 +95,7 @@ stdenv.mkDerivation {
   buildInputs = with riscv-opcodes; [
     sailCodeGenDeps.setupHook
     ocamlPackages'.sail
+    rustDeps
   ];
 
   buildPhase = ''
@@ -84,8 +104,7 @@ stdenv.mkDerivation {
     export SAIL_FLAGS="--require-version 0.18 --strict-var -dno_cast"
     mill -i 'sailcodegen.jvm.runMain' sailCodeGen rv64i
 
-    sail $SAIL_FLAGS -O -Oconstant_fold -memo_z3 -c \
-      -c_include ../c/lib.h \
+    sail $SAIL_FLAGS -O -Oconstant_fold -memo_z3 -c --c-include ../c/lib.h \
       -c_no_main \
       ./sailcodegen/jvm/src/sail/rvcore/lib/prelude.sail \
       ./sailcodegen/jvm/src/sail/rvcore/rv_xlen.sail \
@@ -101,14 +120,20 @@ stdenv.mkDerivation {
       ./sailcodegen/jvm/src/sail/rvcore/sailexpose.sail \
       -o ./sailcodegen/jvm/src/sail/rvcore/rv_model
 
+    cc -c -I ${ocamlPackages'.sail.src}/lib \
+      -I sail/c \
+      ${ocamlPackages'.sail.src}/lib/*.c \
+      ./sailcodegen/jvm/src/sail/rvcore/rv_model.c \
+      -lgmp -lz
+
+    
+
     cc -g \
       -I ${ocamlPackages'.sail.src}/lib \
-      -I ./sailcodegen/jvm/src/sail/c \
-      ./sailcodegen/jvm/src/sail/c/lib.c \
-      ./sailcodegen/jvm/src/sail/c/rv_sim.c \
-      ./sailcodegen/jvm/src/sail/rvcore/rv_model.c \
+      ./rv_model.o \
       ${ocamlPackages'.sail.src}/lib/*.c \
-      -lgmp -lz \
+      ${rustDeps}/lib/libsail_rust_ffi.a \
+      -lgmp -lz -lpthread -ldl \
       -o ./sailcodegen/jvm/src/rv
 
     runHook postBuild
