@@ -1,20 +1,5 @@
 {
   "nodes": {
-    "chisel-nix": {
-      "locked": {
-        "lastModified": 1737828683,
-        "narHash": "sha256-SOwU0QmgV3DScCzdtt2cxqr0ac2Um0oQO7SOJ4LMyds=",
-        "owner": "chipsalliance",
-        "repo": "chisel-nix",
-        "rev": "46999288edc2a302edfe95eebde61d3e66e5c037",
-        "type": "github"
-      },
-      "original": {
-        "owner": "chipsalliance",
-        "repo": "chisel-nix",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -33,13 +18,36 @@
         "type": "github"
       }
     },
+    "mif": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1743151794,
+        "narHash": "sha256-g7VCBe4agxF7m6fCm9BfHBjW/4sbrb/c3a3VFZbrp/E=",
+        "owner": "Avimitin",
+        "repo": "mill-ivy-fetcher",
+        "rev": "2b7a55604fb22ee5a0c8fd03b5e2ab0865d1e010",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Avimitin",
+        "repo": "mill-ivy-fetcher",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1737746512,
-        "narHash": "sha256-nU6AezEX4EuahTO1YopzueAXfjFfmCHylYEFCagduHU=",
+        "lastModified": 1742889210,
+        "narHash": "sha256-hw63HnwnqU3ZQfsMclLhMvOezpM7RSB0dMAtD5/sOiw=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "825479c345a7f806485b7f00dbe3abb50641b083",
+        "rev": "698214a32beb4f4c8e3942372c694f40848b360d",
         "type": "github"
       },
       "original": {
@@ -51,8 +59,8 @@
     },
     "root": {
       "inputs": {
-        "chisel-nix": "chisel-nix",
         "flake-utils": "flake-utils",
+        "mif": "mif",
         "nixpkgs": "nixpkgs"
       }
     },
