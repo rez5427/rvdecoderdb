@@ -15,5 +15,13 @@ final: prev:
 
   rvdecoderdb-jvm = final.callPackage ./nix/rvdecoderdb-jvm.nix { };
 
-  sail = final.callPackage ./nix/sailcodegen.nix { };
+  riscv-opcodes-src = final.fetchFromGitHub {
+    owner = "riscv";
+    repo = "riscv-opcodes";
+    rev = "8899b32f218c85bf2559fa95f226bc2533316802";
+    fetchSubmodules = false;
+    sha256 = "sha256-7CV/T8gnE7+ZPfYbn38Zx8fYUosTc8bt93wk5nmxu2c=";
+  };
+
+  sailcodegen-jvm-jar = final.callPackage ./nix/sailcodegen-jvm-jar/package.nix { };
 }

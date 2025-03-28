@@ -13,16 +13,15 @@
 }:
 
 let
-  # Rust部分构建
   rustDeps = rustPlatform.buildRustPackage rec {
     pname = "sail-rust";
     version = "0.1.0";
-    
+
     src = ../sailcodegen/jvm/src/sail/rust;
-    
+
     cargoLock = {
       lockFile = src + /Cargo.lock;
-      outputHashes = {};
+      outputHashes = { };
     };
 
     buildType = "release";
@@ -92,7 +91,7 @@ stdenv.mkDerivation {
     zlib
   ];
 
-  buildInputs = with riscv-opcodes; [
+  buildInputs = [
     sailCodeGenDeps.setupHook
     ocamlPackages'.sail
     rustDeps
