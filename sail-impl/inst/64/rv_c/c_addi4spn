@@ -1,3 +1,5 @@
-let imm : bits(12) = (0b00 @ nzimm @ 0b00);
-let rd = creg2reg_idx(rdc);
-X(rd) = X(sp) + imm;
+let imm : bits(12) = (0b00 @ c_nzuimm10 @ 0b00);
+let rd = creg2reg_idx(rd_p);
+// 0b00010 represents sp
+let sp_val = read_GPR(0b00010);
+write_GPR(rd, sp_val + sign_extend(imm));

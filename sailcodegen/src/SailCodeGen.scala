@@ -156,7 +156,16 @@ class SailCodeGenerator(params: SailCodeGeneratorParams) {
                       case "jimm20lo"   => s"bits(20)"
                       case "imm20lo"    => s"bits(20)"
                       case "imm12lo"    => s"bits(12)"
-                      case "c_nzimm6lo" => s"bits(7)"
+                      case "c_nzimm6lo" => s"bits(6)"
+                      case "c_imm6lo"   => s"bits(6)"
+                      case "c_uimm7lo"  => s"bits(5)"
+                      case "c_nzimm18lo"=> s"bits(6)"
+                      case "c_bimm9lo"  => s"bits(8)"
+                      case "c_uimm8splo"=> s"bits(6)"
+                      case "c_nzimm10lo"=> s"bits(6)"
+                      case "c_uimm8lo"  => s"bits(5)"
+                      case "c_nzuimm6lo"=> s"bits(6)"
+                      case "c_uimm9splo"=> s"bits(6)"
                       case _            => s"bits(${arg.lsb - arg.msb + 1})"
                     }
                   } else {
@@ -180,12 +189,33 @@ class SailCodeGenerator(params: SailCodeGeneratorParams) {
         val argBits = arg.lsb - arg.msb + 1
         val newAcc  = acc :+
           (arg.name match {
-            case "bimm12hi" => "imm7_6 : bits(1) @ imm7_5_0 : bits(6)"
-            case "bimm12lo" => "imm5_4_1 : bits(4) @ imm5_0 : bits(1)"
-            case "jimm20"   =>
+            case "bimm12hi"     => "imm7_6 : bits(1) @ imm7_5_0 : bits(6)"
+            case "bimm12lo"     => "imm5_4_1 : bits(4) @ imm5_0 : bits(1)"
+            case "jimm20"       =>
               "imm_19 : bits(1) @ imm_18_13 : bits(6) @ imm_12_9 : bits(4) @ imm_8 : bits(1) @ imm_7_0 : bits(8)"
-            case "imm12lo"  => "imm12lo : bits(5)"
-            case "imm12hi"  => "imm12hi : bits(7)"
+            case "imm12lo"      => "imm12lo : bits(5)"
+            case "imm12hi"      => "imm12hi : bits(7)"
+            case "c_nzimm6hi"   => "nzi5 : bits(1)"
+            case "c_nzimm6lo"   => "nzi40 : bits(5)"
+            case "c_nzuimm10"   => "nz54 : bits(2) @ nz96 : bits(4) @ nz2 : bits(1) @ nz3 : bits(1)"
+            case "c_imm6hi"     => "c_imm6hi : bits(1)"
+            case "c_imm6lo"     => "c_imm6lo : bits(5)"
+            case "c_nzimm18hi"  => "c_nzimm18hi : bits(1)"
+            case "c_nzimm18lo"  => "c_nzimm18lo : bits(5)"
+            case "c_bimm9hi"    => "i8 : bits(1) @ i43 : bits(2)"
+            case "c_bimm9lo"    => "i76 : bits(2) @ i21 : bits(2) @ i5 : bits(1)"
+            case "c_uimm8sphi"  => "ui5 : bits(1)"
+            case "c_uimm8splo"  => "ui42 : bits(3) @ ui76 : bits(2)"
+            case "c_nzimm10hi"  => "nzi9 : bits(1)"
+            case "c_nzimm10lo"  => "nzi4 : bits(1) @ nzi6 : bits(1) @ nzi87 : bits(2) @ nzi5 : bits(1)"
+            case "c_uimm7hi"    => "ui53 : bits(3)"
+            case "c_uimm7lo"    => "ui2 : bits(1) @ ui6 : bits(1)"
+            case "c_nzuimm6hi"  => "nzui5 : bits(1)"
+            case "c_nzuimm6lo"  => "nzui40 : bits(5)"
+            case "c_uimm9sphi"  => "ui5 : bits(1)"
+            case "c_uimm9splo"  => "ui43 : bits(2) @ ui86 : bits(3)"
+            case "c_uimm8hi"    => "ui53 : bits(3)"
+            case "c_uimm8lo"    => "ui76 : bits(2)"
             case _          => arg.name
           })
 
@@ -221,7 +251,17 @@ class SailCodeGenerator(params: SailCodeGeneratorParams) {
               case "bimm12lo"   => "imm7_6 @ imm5_0 @ imm7_5_0 @ imm5_4_1"
               case "jimm20"     => "imm_19 @ imm_7_0 @ imm_8 @ imm_18_13 @ imm_12_9"
               case "imm12lo"    => "imm12hi @ imm12lo"
-              case "c_nzimm6lo" => "nz96 @ nz54 @ nz3 @ nz2"
+              case "c_nzimm6lo" => "nzi5 @ nzi40"
+              case "c_nzuimm10" => "nz96 @ nz54 @ nz3 @ nz2"
+              case "c_imm6lo"   => "c_imm6hi @ c_imm6lo"
+              case "c_nzimm18lo"=> "c_nzimm18hi @ c_nzimm18lo"
+              case "c_bimm9lo"  => "i8 @ i76 @ i5 @ i43 @ i21"
+              case "c_uimm8splo"=> "ui76 @ ui5 @ ui42"
+              case "c_nzimm10lo"=> "nzi9 @ nzi87 @ nzi6 @ nzi5 @ nzi4"
+              case "c_uimm7lo"  => "ui6 @ ui53 @ ui2"
+              case "c_nzuimm6lo"=> "nzui5 @ nzui40"
+              case "c_uimm9splo"=> "ui86 @ ui5 @ ui43"
+              case "c_uimm8lo"  => "ui76 @ ui53"
               case _            => arg.toString
             }
           })
@@ -236,7 +276,6 @@ class SailCodeGenerator(params: SailCodeGeneratorParams) {
               case "bimm12lo"   => "imm7_6 @ imm5_0 @ imm7_5_0 @ imm5_4_1"
               case "jimm20"     => "imm_19 @ imm_7_0 @ imm_8 @ imm_18_13 @ imm_12_9"
               case "imm12lo"    => "imm12hi @ imm12lo"
-              case "c_nzimm6lo" => "nz96 @ nz54 @ nz3 @ nz2"
               case _            => arg.toString
             }
           })
