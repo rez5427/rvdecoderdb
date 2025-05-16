@@ -1,0 +1,2 @@
+write_GPR(rd, shift_bits_right_arith(X(rs1), shamt));
+nextPC = PC + 4;

@@ -1,5 +1,4 @@
-let imm : bits(12) = (0b00 @ c_nzuimm10 @ 0b00);
-let rd = creg2reg_idx(rd_p);
-// 0b00010 represents sp
-let sp_val = read_GPR(0b00010);
-write_GPR(rd, sp_val + sign_extend(imm));
+let imm : bits(12) = sign_extend(c_nzimm6);
+let rsd_val = read_GPR(rd_rs1_n0);
+write_GPR(rd_rs1_n0, rsd_val + sign_extend(imm));
+nextPC = PC + 4;

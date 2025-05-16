@@ -1,0 +1,6 @@
+let rsd = creg2reg_idx(rsd);
+let rs2 = creg2reg_idx(rs2);
+let rsd_val = read_GPR(rsd)[31..0];
+let rs2_val = read_GPR(rs2)[31..0];
+write_GPR(rsd, sign_extend(rs2_val - rsd_val));
+nextPC = PC + 4;

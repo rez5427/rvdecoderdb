@@ -1,0 +1,3 @@
+let rsd = creg2reg_idx(rd_rs1_p);
+write_GPR(rsd, read_GPR(rsd) & sign_extend(c_imm6lo));
+nextPC = PC + 4;

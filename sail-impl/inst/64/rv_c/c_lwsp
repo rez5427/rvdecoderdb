@@ -1,0 +1,4 @@
+let imm : bits(12) = zero_extend(c_uimm8splo @ 0b000);
+// 0b00010 represents sp
+write_GPR(rd_n0, sign_extend(readmem(read_GPR(0b00010) + sign_extend(imm), satp.bits)[31..0]));
+nextPC = PC + 4;

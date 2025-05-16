@@ -1,0 +1,2 @@
+write_GPR(rd, read_GPR(rd) << uimm);
+nextPC = PC + 4;

@@ -1,0 +1,3 @@
+let off : XLENBITS = sign_extend(c_nzimm18lo @ 0x000);
+write_GPR(rd_n2, off);
+nextPC = PC + 4;

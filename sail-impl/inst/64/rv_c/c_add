@@ -1,0 +1,4 @@
+let rd_val = read_GPR(rd_rs1_n0);
+let rs2_val = read_GPR(c_rs2_n0);
+write_GPR(rd_rs1_n0, rd_val + rs2_val);
+nextPC = PC + 4;

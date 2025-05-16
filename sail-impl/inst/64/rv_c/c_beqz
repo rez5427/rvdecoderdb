@@ -1,0 +1,7 @@
+let rs = creg2reg_idx(rs1_p);
+let rs_val = read_GPR(rs);
+let taken : bool = rs_val == zero_extend(0b00);
+if taken then {
+  let t : XLENBITS = PC + sign_extend(c_bimm9lo @ 0b0);
+  nextPC = t;
+}

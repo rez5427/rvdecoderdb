@@ -1,0 +1,5 @@
+let imm : bits(12) = sign_extend(c_nzimm10lo @ 0x0);
+// 0b00010 represents sp
+let sp_val = read_GPR(0b00010);
+write_GPR(0b00010, sp_val + sign_extend(imm));
+nextPC = PC + 4;

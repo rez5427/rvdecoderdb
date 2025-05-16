@@ -1,0 +1,3 @@
+write_GPR(0b00000, nextPC);
+let newPC : XLENBITS = sign_extend(c_imm12);
+nextPC = [newPC with 0 = bitzero];

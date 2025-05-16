@@ -1,0 +1,5 @@
+let imm : bits(12) = zero_extend(uimm @ 0b000);
+let rd = creg2reg_idx(rdc);
+let rs = creg2reg_idx(rsc);
+write_GPR(rd, readmem(read_GPR(rs) + sign_extend(imm), satp.bits)[15..0]);
+nextPC = PC + 4;

@@ -296,10 +296,11 @@ class SailCodeGenerator(params: SailCodeGeneratorParams) {
           .filter(arg => !arg.toString.contains("hi"))
           .map(arg => {
             arg.name match {
-              case "bimm12lo" => arg.toString.stripSuffix("lo")
-              case "jimm20lo" => arg.toString.stripSuffix("lo")
-              case "imm12lo"  => arg.toString.stripSuffix("lo")
-              case _          => arg.toString
+              case "bimm12lo"   => arg.toString.stripSuffix("lo")
+              case "jimm20lo"   => arg.toString.stripSuffix("lo")
+              case "imm12lo"    => arg.toString.stripSuffix("lo")
+              case "c_nzimm6lo" => arg.toString.stripSuffix("lo")
+              case _            => arg.toString
             }
           })
           .mkString(", ") + ")) = {" + os.read(path).split('\n').map(line => "\n\t" + line).mkString + "\n" + "}"

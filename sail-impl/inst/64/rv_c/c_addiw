@@ -3,3 +3,4 @@ let rd = creg2reg_idx(rd_p);
 // 0b00010 represents sp
 let sp_val = read_GPR(0b00010);
 write_GPR(rd, sp_val + sign_extend(imm));
+nextPC = PC + 4;

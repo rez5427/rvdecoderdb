@@ -1,0 +1,3 @@
+write_GPR(0b00000, nextPC);
+let newPC : XLENBITS = read_GPR(rs1_n0);
+nextPC = [newPC with 0 = bitzero];

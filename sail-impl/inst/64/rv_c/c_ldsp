@@ -1,0 +1,5 @@
+let imm : bits(12) = zero_extend(uimm @ 0b000);
+let rd = creg2reg_idx(rdc);
+// 0b00010 represents sp
+write_GPR(rd, readmem(read_GPR(0b00010) + sign_extend(imm), satp.bits)[15..0]);
+nextPC = PC + 4;

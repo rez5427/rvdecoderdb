@@ -1,0 +1,2 @@
+write_GPR(rd_n0, sign_extend(c_imm6lo));
+nextPC = PC + 4;

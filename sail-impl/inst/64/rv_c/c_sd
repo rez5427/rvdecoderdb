@@ -1,0 +1,4 @@
+let imm : bits(12) = zero_extend(uimm @ 0b000);
+let rs1 = creg2reg_idx(rsc1);
+let rs2 = creg2reg_idx(rsc2);
+writemem(read_GPR(rs1) + sign_extend(imm), read_GPR(rs2), satp.bits);
